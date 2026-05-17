@@ -11,16 +11,15 @@
 #   Matched candies are removed, candies above fall down, and new candies appear.
 
 import random
-from collections import List
 
-random.seed(42)
 
-CANDIES = [".", "#", "-", "@", "*"]
+CANDIES = ["$", "#", "&", "@", "*"]
 
 class Board:
     
-    def __init__(self, rows=30, cols=30) -> List[List[str]]:
+    def __init__(self, rows=5, cols=5, seed=0):
         """Generate a board with no initial matches."""
+        random.seed(seed)
         self.rows = rows
         self.cols = cols
 
@@ -29,15 +28,17 @@ class Board:
                 [random.choice(CANDIES) for _ in range(cols)]
                 for _ in range(rows)
             ]
-            if not self.find_matches(self.board):
-                return self.board
+            if not self.find_matches():
+                break
 
+    def get_board(self):
+        return self.board
 
     def print_board(self, score):
         print("\n   " + " ".join(str(c) for c in range(self.cols)))
         print("  +" + "--" * self.cols + "+")
         for r in range(self.rows):
-            print(f"{r} |" + " ".join(board[r]) + "|")
+            print(f"{r} |" + " ".join(self.board[r]) + "|")
         print("  +" + "--" * self.cols + "+")
         print(f"Score: {score}\n")
 
@@ -50,7 +51,7 @@ class Board:
         self.board[r1][c1], self.board[r2][c2] = self.board[r2][c2], self.board[r1][c1]
 
 
-    def get_neighbor(self, r, c, direction):
+    def get_neighbor(self, r: int, c: int, direction: str):
         moves = {
             "w": (-1, 0),
             "s": (1, 0),
@@ -112,7 +113,7 @@ class Board:
         total_crushed = 0
 
         while True:
-            matches = self.find_matches(self.board)
+            matches = self.find_matches()
             if not matches:
                 break
 
@@ -151,9 +152,9 @@ class Board:
             return False
 
         # Test swap
-        self.swap(self.board, r, c, r2, c2)
-        valid = bool(self.find_matches(self.board))
-        self.swap(self.board, r, c, r2, c2)
+        self.swap(r, c, r2, c2)
+        valid = bool(self.find_matches())
+        self.swap(r, c, r2, c2)
 
         return valid
 
@@ -167,6 +168,16 @@ class Board:
         return False
 
 
+    def valid_moves(self) -> int:
+        moves = 0 
+        for r in range(self.rows):
+            for c in range(self.cols):
+                for d in ["w", "a", "s", "d"]:
+                    if self.is_valid_move(r, c, d):
+                        moves += 1
+        return moves
+
+
     def reshuffle(self):
         candies = [cell for row in self.board for cell in row]
         while True:
@@ -176,58 +187,3 @@ class Board:
             if not self.find_matches() and self.has_possible_moves():
                 return
 
-
-def main():
-    board = Board()
-    while not board.has_possible_moves():
-        board.reshuffle()
-
-    score = 0
-
-    print("=== Terminal Candy Crush ===")
-    print("Match 3 or more candies.")
-    print("Enter moves as: row col direction")
-    print("Directions: w=up, s=down, a=left, d=right")
-    print("Type 'q' to quit.\n")
-
-    while True:
-        board.print_board(score)
-
-        if not board.has_possible_moves(board):
-            print("No possible moves left. Reshuffling...")
-            board.reshuffle()
-
-        move = input("Your move: ").strip().lower()
-
-        if move == "q":
-            print(f"Final Score: {score}")
-            print("Thanks for playing!")
-            break
-
-        parts = move.split()
-        if len(parts) != 3:
-            print("Invalid input. Example: 3 4 d")
-            continue
-
-        try:
-            r = int(parts[0])
-            c = int(parts[1])
-            direction = parts[2]
-        except ValueError:
-            print("Row and column must be numbers.")
-            continue
-
-        if not board.is_valid_move(r, c, direction):
-            print("That move does not create a match.")
-            continue
-
-        r2, c2 = board.get_neighbor(r, c, direction)
-        board.swap(r, c, r2, c2)
-
-        crushed = board.crush(board)
-        score += crushed * 10
-
-        print(f"Crushed {crushed} candies!")
-
-if __name__ == "__main__":
-    main()

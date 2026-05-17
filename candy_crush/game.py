@@ -1,0 +1,84 @@
+from candy_crush.board import Board
+
+
+class Game:
+    def __init__(self, rows=8, cols=8, max_moves=30, seed=0):
+
+        self.rows = rows
+        self.cols = cols
+        self.num_candies = None
+        self.max_moves = max_moves
+        self.seed = seed
+        self.reset()
+
+        print("=== Terminal Candy Crush ===")
+        print("Match 3 or more candies.")
+        print("Enter moves as: row col direction")
+        print("Directions: w=up, s=down, a=left, d=right")
+        print("Type 'q' to quit.\n")
+
+    def reset(self):
+        self.board = Board(
+            rows=self.rows,
+            cols=self.cols,
+            seed=self.seed,
+        )
+        self.score = 0
+        self.moves_left = self.max_moves
+        return self.board.get_board()
+
+    def step(self, move: tuple):
+        """
+        move = (r1, c1, d)
+        Returns:
+            observation, reward, done, info
+        """
+        if self.is_over():
+            raise RuntimeError("Game is already over.")
+
+        info = {
+            "score": self.score,
+            "moves_left": self.moves_left,
+            "valid_moves": self.board.valid_moves(),
+        }
+
+        print("[debug] Move:", move)
+        r, c, d = move        
+        if not self.board.is_valid_move(r, c, d):
+            print("That move does not create a match.")
+            return self.board.get_board(), 0, self.is_over(), info
+            
+
+        r2, c2 = self.board.get_neighbor(r, c, d)
+        self.board.swap(r, c, r2, c2)
+
+        crushed = self.board.crush()
+        self.score += crushed * 10
+
+        print(f"Crushed {crushed} candies!")
+        
+        reward = self.board.crush()
+
+        # Only consume a move if it was valid
+        if reward > 0:
+            self.score += reward
+            self.moves_left -= 1
+
+        done = self.is_over()
+
+        info = {
+            "score": self.score,
+            "moves_left": self.moves_left,
+            "valid_moves": self.board.valid_moves(),
+        }
+
+        return self.board.get_board(), reward, done, info
+
+    def is_over(self):
+        return (
+            self.moves_left <= 0
+            or self.board.valid_moves() == 0
+        )
+    
+    def render(self):
+        self.board.print_board(self.score)
