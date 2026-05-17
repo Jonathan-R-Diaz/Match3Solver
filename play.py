@@ -2,7 +2,6 @@
 from candy_crush.game import Game
 
 def main():
-    
     game = Game()
     game.reset()
 

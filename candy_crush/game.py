@@ -54,16 +54,10 @@ class Game:
 
         crushed = self.board.crush()
         self.score += crushed * 10
+        self.moves_left -= 1
 
         print(f"Crushed {crushed} candies!")
         
-        reward = self.board.crush()
-
-        # Only consume a move if it was valid
-        if reward > 0:
-            self.score += reward
-            self.moves_left -= 1
-
         done = self.is_over()
 
         info = {
@@ -72,7 +66,7 @@ class Game:
             "valid_moves": self.board.valid_moves(),
         }
 
-        return self.board.get_board(), reward, done, info
+        return self.board.get_board(), crushed, done, info
 
     def is_over(self):
         return (
@@ -81,4 +75,11 @@ class Game:
         )
     
     def render(self):
-        self.board.print_board(self.score)
+        # Use the package renderer if available for colored output, otherwise fall back
+        try:
+            from candy_crush.render import render_board
+
+            render_board(self.board.get_board(), score=self.score)
+        except Exception:
+            # Fallback to simple text output
+            self.board.print_board(self.score)
