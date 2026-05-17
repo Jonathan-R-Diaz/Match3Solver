@@ -54,3 +54,26 @@ if __name__ == '__main__':
         ['&', '&', '&', '$', '#'],
     ]
     render_board(demo_board, score=42)
+
+
+def animate_frames(frames: List[List[List[str]]], delay: float = 0.35, use_color: bool = True) -> None:
+    """Play a list of board frames in the terminal with a small delay.
+
+    Each frame is a 2D list of characters identical to `board`.
+    """
+    import time
+    import os
+
+    def _clear():
+        # Try a fast ANSI clear which works in most terminals
+        print('\033[H\033[J', end='')
+
+    # Play frames
+    import sys
+
+    for frame in frames:
+        _clear()
+        render_board(frame, use_color=use_color)
+        # Ensure output is shown immediately
+        sys.stdout.flush()
+        time.sleep(delay)

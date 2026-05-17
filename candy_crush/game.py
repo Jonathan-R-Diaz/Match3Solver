@@ -27,7 +27,7 @@ class Game:
         self.moves_left = self.max_moves
         return self.board.get_board()
 
-    def step(self, move: tuple):
+    def step(self, move: tuple, animate: bool = False):
         """
         move = (r1, c1, d)
         Returns:
@@ -43,7 +43,7 @@ class Game:
         }
 
         print("[debug] Move:", move)
-        r, c, d = move        
+        r, c, d = move
         if not self.board.is_valid_move(r, c, d):
             print("That move does not create a match.")
             return self.board.get_board(), 0, self.is_over(), info
@@ -52,8 +52,19 @@ class Game:
         r2, c2 = self.board.get_neighbor(r, c, d)
         self.board.swap(r, c, r2, c2)
 
-        crushed = self.board.crush()
-        self.score += crushed * 10
+        if animate:
+            crushed, frames = self.board.crush(return_frames=True)
+            try:
+                from candy_crush.render import animate_frames
+
+                animate_frames(frames)
+            except Exception:
+                pass
+        else:
+            crushed = self.board.crush()
+
+        # Score is number of candies crushed (tests rely on reward magnitude)
+        self.score += crushed
         self.moves_left -= 1
 
         print(f"Crushed {crushed} candies!")

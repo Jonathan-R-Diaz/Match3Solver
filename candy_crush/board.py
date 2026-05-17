@@ -110,7 +110,16 @@ class Board:
         4. Fill new candies
         Returns the total number of candies crushed.
         """
+        return self.crush(return_frames=False)
+
+    def crush(self, return_frames: bool = False):
+        """
+        Repeatedly find matches, remove them, drop candies and refill.
+        If return_frames is True, also collect intermediate board snapshots (frames)
+        and return (total_crushed, frames). Otherwise just return total_crushed (int).
+        """
         total_crushed = 0
+        frames = []
 
         while True:
             matches = self.find_matches()
@@ -119,9 +128,17 @@ class Board:
 
             total_crushed += len(matches)
 
+            # Capture before-removal state
+            if return_frames:
+                frames.append([row.copy() for row in self.board])
+
             # Remove matched candies
             for r, c in matches:
                 self.board[r][c] = " "
+
+            # Capture after-removal (empty spots)
+            if return_frames:
+                frames.append([row.copy() for row in self.board])
 
             # Drop candies and refill
             for c in range(self.cols):
@@ -139,6 +156,12 @@ class Board:
                 for r in range(self.rows):
                     self.board[r][c] = new_column[r]
 
+            # Capture after refill
+            if return_frames:
+                frames.append([row.copy() for row in self.board])
+
+        if return_frames:
+            return total_crushed, frames
         return total_crushed
 
 
