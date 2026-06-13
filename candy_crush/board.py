@@ -58,9 +58,9 @@ class Board:
             "a": (0, -1),
             "d": (0, 1),
         }
-        if direction not in moves:
-            return None
         dr, dc = moves[direction]
+        if direction not in moves or r + dr >= self.rows or c + dc >= self.cols:
+            return None
         return r + dr, c + dc
 
 
