@@ -1,2 +1,9 @@
 pytest
 pytest-cov
+
+# Optional ML / RL dependencies (uncomment to install)
+gym
+numpy
+torch
+stable-baselines3
+gymnasium
