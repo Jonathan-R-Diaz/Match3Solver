@@ -10,6 +10,25 @@ def pick_last(moves):
     return moves[-1]
 
 
+def most_pop(game, moves):
+    # Pick the move that would crush the most candies
+    max_crush = -1
+    best_move = None
+    for move in moves:
+        r1, c1, d = move
+        r2, c2 = game.board.get_neighbor(r1, c1, d)
+        game.board.swap(r1, c1, r2, c2)
+        crush_count = len(game.board.find_matches())
+        game.board.swap(r1, c1, r2, c2)  # swap back
+        #print(f"\t[debug] Evaluating move: {move} -> swap ({r1}, {c1}) with ({r2}, {c2}) -> crush_count: {crush_count}")
+        if crush_count >= max_crush:
+            max_crush = crush_count
+            best_move = move
+    
+    print(f"[debug] best_move: {best_move} with crush_count: {max_crush}")
+    return best_move
+
+
 def main():
     parser = ArgumentParser()
     parser.add_argument('--animate', action='store_true', help='Enable terminal animation for crushes')
