@@ -42,7 +42,7 @@ class Game:
             "valid_moves": self.board.valid_moves(),
         }
 
-        print("[debug] Move:", move)
+        #print("[debug] Move:", move)
         r, c, d = move
         if not self.board.is_valid_move(r, c, d):
             print("That move does not create a match.")
