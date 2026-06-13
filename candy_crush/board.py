@@ -192,12 +192,12 @@ class Board:
 
 
     def valid_moves(self) -> int:
-        moves = 0 
+        moves = []
         for r in range(self.rows):
             for c in range(self.cols):
                 for d in ["w", "a", "s", "d"]:
                     if self.is_valid_move(r, c, d):
-                        moves += 1
+                        moves.append((r,c,d))
         return moves
 
 
