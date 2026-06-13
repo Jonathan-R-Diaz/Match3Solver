@@ -34,7 +34,7 @@ def main():
             continue
 
         obs, reward, done, info = game.step((r, c, d), animate=args.animate)
-        print(f"[debug] obs: {obs} \nreward: {reward} \ndone: {done} \ninfo: {info}")
+        #print(f"[debug] obs: {obs} \nreward: {reward} \ndone: {done} \ninfo: {info}")
 
         if done:
             print("Game over!")
