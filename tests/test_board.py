@@ -78,5 +78,28 @@ def test_find_5_in_a_row():
 
     ]
     matches = b.find_matches()
-    expected_matches = {(0,0), (0,1), (0,2), (0,3), (0,4),(1,0), (2,0), (3,0), (4,0), (5,0)}  # The 5 in a row plus the 5 in the first column
+    expected_matches = {(0,0), (0,1), (0,2), (0,3), (0,4), (1,0), (2,0), (3,0), (4,0), (5,0)}  # The 5 in a row plus the 5 in the first column
     assert matches == expected_matches
+
+
+def test_create_5_power_up_board():
+    b = Board(rows=5, cols=6)
+    # Create a horizontal match of 5 to test power-up creation
+    b.board = [
+        ['@', '$', '$', '$', '$', '$'],
+        ['@', ' ', ' ', ' ', ' ', ' '],
+        ['@', ' ', ' ', ' ', ' ', ' '],
+        ['@', ' ', ' ', ' ', ' ', ' '],
+        ['@', ' ', ' ', ' ', ' ', ' ']
+    ]
+
+    b.crush(refill=False)  # This should create a power-up in the middle of the first column
+    
+    expected_board = [
+        [' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' '],
+        ['5', ' ', ' ', '5', ' ', ' ']
+    ]
+    assert b.board == expected_board  # Check that the power-up was created in the expected location

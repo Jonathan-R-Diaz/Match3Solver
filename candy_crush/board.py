@@ -105,8 +105,16 @@ class Board:
                         for k in range(c - count, c):
                             matched.add((r, k))
                     count = 1
-            if count >= 3:
+            if count == 3 or count == 4:
                 for k in range(self.cols - count, self.cols):
+                    matched.add((r, k))
+            elif count >= 5:
+                candy = 0
+                for k in range(self.cols - count, self.cols):
+                    candy += 1
+                    if candy == 3: 
+                        self.board[r][k] = "5"
+                        matched.add((r, k))
                     matched.add((r, k))
 
         # Vertical matches
@@ -120,8 +128,16 @@ class Board:
                         for k in range(r - count, r):
                             matched.add((k, c))
                     count = 1
-            if count >= 3:
+            if count == 3 or count == 4:
                 for k in range(self.rows - count, self.rows):
+                    matched.add((k, c))
+            elif count >= 5:
+                candy = 0
+                for k in range(self.rows - count, self.rows):
+                    candy += 1
+                    if candy == 3: 
+                        self.board[k][c] = "5"
+                        matched.add((k, c))
                     matched.add((k, c))
 
         return matched
@@ -134,7 +150,8 @@ class Board:
 
         # Remove matched candies
         for r, c in matches:
-            self.board[r][c] = " "
+            if self.board[r][c] != "5":
+                self.board[r][c] = " "
 
         return len(matches)
             
