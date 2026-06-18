@@ -1,5 +1,5 @@
 .venv
-tests/__pycache__
+tests/__pycache__/
 scripts/
 notes.txt
 .pytest_cache/
