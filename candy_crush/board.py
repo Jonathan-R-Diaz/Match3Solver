@@ -30,12 +30,19 @@ class Board:
             if not self.find_matches():
                 break
 
+
     def get_board(self):
         return self.board
 
 
-    def simulate_move(self, r, c, direction) -> int:
-        previous_board = [row.copy() for row in self.board]
+    def copy(self):
+        new_board = Board(self.rows, self.cols)
+        new_board.board = [row.copy() for row in self.board]
+        return new_board
+    
+    def simulate_move(self, r, c, direction, revert=True) -> int:
+        if revert:
+            previous_board = [row.copy() for row in self.board]
         neighbor = self.get_neighbor(r, c, direction)
         if neighbor is None:
             return None
@@ -47,7 +54,8 @@ class Board:
         # Test swap
         self.swap(r, c, r2, c2)
         crush_count = self.crush(return_frames=False, refill=False)
-        self.board = previous_board  # revert to original state
+        if revert:
+            self.board = previous_board  # revert to original state
 
         return crush_count
 

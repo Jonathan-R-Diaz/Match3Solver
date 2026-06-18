@@ -26,6 +26,36 @@ def most_pop(game, moves):
     return best_move
 
 
+def two_step_lookahead(game, moves):
+    # Pick the move that would lead to the best next move
+    best_score = -1
+    best_move = None
+    for move in moves:
+        previous_board = game.board.copy()
+        r1, c1, d = move
+        crush_count = game.board.simulate_move(r1, c1, d, revert=False)
+        next_moves = game.board.valid_moves()
+        
+        if not next_moves:
+            score = crush_count
+        else:
+            # Evaluate the best next move
+            next_best_move = most_pop(game, next_moves)
+            if next_best_move is not None:
+                r2, c2, d2 = next_best_move
+                score = crush_count + game.board.simulate_move(r2, c2, d2, revert=False)
+            else:
+                score = crush_count
+
+        if score > best_score:
+            best_score = score
+            best_move = move
+
+        game.board = previous_board  # revert to original state
+
+    return best_move
+
+
 def main():
     parser = ArgumentParser()
     parser.add_argument('--animate', action='store_true', help='Enable terminal animation for crushes')
@@ -49,8 +79,8 @@ def main():
         
         moves = game.board.valid_moves()
 
-        parts = most_pop(game, moves)
-
+        parts = two_step_lookahead(game, moves)
+        print(parts)
         r_str, c_str, d = parts
         try:
             r = int(r_str)
