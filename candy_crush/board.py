@@ -12,7 +12,6 @@
 
 import random
 
-
 CANDIES = ["$", "#", "&", "@", "*"]
 
 class Board:
@@ -99,6 +98,45 @@ class Board:
                     matched.add((k, c))
 
         return matched
+    
+    def pop(self) -> int:
+        matches = self.find_matches()
+        if not matches:
+            return 0
+
+        # Remove matched candies
+        for r, c in matches:
+            self.board[r][c] = " "
+
+        return len(matches)
+            
+
+
+    def drop(self):
+        n = len(self.board)
+        m = len(self.board[0])
+
+        for i in range(n - 1, -1, -1):
+            for j in range(m - 1, -1, -1):
+                if self.board[i][j] != " ":
+                    continue
+                
+                k = i - 1
+                while k >= 0 and self.board[k][j] == -1:
+                    k -= 1    
+                offset = i - k
+                for k in range(i, -1, -1):
+                    if k - offset >= 0:
+                        self.board[k][j] = self.board[k - offset][j]
+                    else:
+                        self.board[k][j] = " "
+
+
+    def fill(self):
+        for r in range(self.rows):
+            for c in range(self.cols):
+                if self.board[r][c] == " ":
+                    self.board[r][c] = random.choice(CANDIES)
 
 
     def crush(self):
@@ -122,40 +160,22 @@ class Board:
         frames = []
 
         while True:
-            matches = self.find_matches()
-            if not matches:
-                break
-
-            total_crushed += len(matches)
-
             # Capture before-removal state
             if return_frames:
                 frames.append([row.copy() for row in self.board])
-
-            # Remove matched candies
-            for r, c in matches:
-                self.board[r][c] = " "
-
+            
+            pops = self.pop()
+            total_crushed += pops
+            if pops == 0:
+                break
+            
             # Capture after-removal (empty spots)
             if return_frames:
                 frames.append([row.copy() for row in self.board])
-
-            # Drop candies and refill
-            for c in range(self.cols):
-                remaining = [
-                    self.board[r][c]
-                    for r in range(self.rows)
-                    if self.board[r][c] != " "
-                ]
-                spaces = self.rows - len(remaining)
-                new_column = (
-                    [random.choice(CANDIES) for _ in range(spaces)]
-                    + remaining
-                )
-
-                for r in range(self.rows):
-                    self.board[r][c] = new_column[r]
-
+            
+            self.drop()            
+            self.fill()
+            
             # Capture after refill
             if return_frames:
                 frames.append([row.copy() for row in self.board])
