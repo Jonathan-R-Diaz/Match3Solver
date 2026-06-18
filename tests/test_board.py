@@ -45,5 +45,38 @@ def test_is_valid_move_and_has_possible_moves():
     assert isinstance(b.has_possible_moves(), bool)
     # Check valid_moves returns an integer >= 0
     vm = b.valid_moves()
-    assert isinstance(vm, int)
-    assert vm >= 0
+    assert isinstance(vm, list)
+    assert len(vm) >= 0
+
+
+def test_find_4_in_a_row():
+    b = Board(rows=5, cols=5)
+    # Create a vertical match of 4
+    b.board = [
+        ['#', '@', '@', '@', '@'],
+        ['#', ' ', ' ', ' ', ' '],
+        ['#', ' ', ' ', ' ', ' '],
+        ['#', ' ', ' ', ' ', ' '],
+        ['$', ' ', ' ', ' ', ' ']
+    ]
+    matches = b.find_matches()
+    # Expecting a vertical match of 4 in the first column
+    expected_matches = {(0,0), (1,0), (2,0), (3,0), (0,1), (0,2), (0,3), (0,4)}  # The 4 in a row plus the 4 in the first row
+    assert matches == expected_matches
+
+
+def test_find_5_in_a_row():
+    b = Board(rows=6, cols=5)
+    # Create a horizontal match of 5
+    b.board = [
+        ['#', '#', '#', '#', '#'],
+        ['@', ' ', ' ', ' ', ' '],
+        ['@', ' ', ' ', ' ', ' '],
+        ['@', ' ', ' ', ' ', ' '],
+        ['@', ' ', ' ', ' ', ' '],
+        ['@', ' ', ' ', ' ', ' ']
+
+    ]
+    matches = b.find_matches()
+    expected_matches = {(0,0), (0,1), (0,2), (0,3), (0,4),(1,0), (2,0), (3,0), (4,0), (5,0)}  # The 5 in a row plus the 5 in the first column
+    assert matches == expected_matches
