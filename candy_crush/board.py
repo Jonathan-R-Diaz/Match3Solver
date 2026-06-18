@@ -33,11 +33,30 @@ class Board:
     def get_board(self):
         return self.board
 
-    def print_board(self, score):
+
+    def simulate_move(self, r, c, direction) -> int:
+        previous_board = [row.copy() for row in self.board]
+        neighbor = self.get_neighbor(r, c, direction)
+        if neighbor is None:
+            return None
+
+        r2, c2 = neighbor
+        if not self.in_bounds(r, c) or not self.in_bounds(r2, c2):
+            return None
+
+        # Test swap
+        self.swap(r, c, r2, c2)
+        crush_count = self.crush(return_frames=False, refill=False)
+        self.board = previous_board  # revert to original state
+
+        return crush_count
+
+
+    def print_board(self, score = -1):
         print("\n   " + " ".join(str(c) for c in range(self.cols)))
         print("  +" + "--" * self.cols + "+")
         for r in range(self.rows):
-            print(f"{r} |" + " ".join(self.board[r]) + "|")
+            print(f"{r}|" + " ".join(self.board[r]) + "|")
         print("  +" + "--" * self.cols + "+")
         print(f"Score: {score}\n")
 
@@ -71,7 +90,7 @@ class Board:
         for r in range(self.rows):
             count = 1
             for c in range(1, self.cols):
-                if self.board[r][c] == self.board[r][c - 1]:
+                if self.board[r][c] == self.board[r][c - 1] and self.board[r][c] != " ":
                     count += 1
                 else:
                     if count >= 3:
@@ -86,7 +105,7 @@ class Board:
         for c in range(self.cols):
             count = 1
             for r in range(1, self.rows):
-                if self.board[r][c] == self.board[r - 1][c]:
+                if self.board[r][c] == self.board[r - 1][c] and self.board[r][c] != " ":
                     count += 1
                 else:
                     if count >= 3:
@@ -99,6 +118,7 @@ class Board:
 
         return matched
     
+
     def pop(self) -> int:
         matches = self.find_matches()
         if not matches:
@@ -111,7 +131,6 @@ class Board:
         return len(matches)
             
 
-
     def drop(self):
         n = len(self.board)
         m = len(self.board[0])
@@ -122,7 +141,7 @@ class Board:
                     continue
                 
                 k = i - 1
-                while k >= 0 and self.board[k][j] == -1:
+                while k >= 0 and self.board[k][j] == " ":
                     k -= 1    
                 offset = i - k
                 for k in range(i, -1, -1):
@@ -150,7 +169,7 @@ class Board:
         """
         return self.crush(return_frames=False)
 
-    def crush(self, return_frames: bool = False):
+    def crush(self, return_frames: bool = False, refill: bool = True):
         """
         Repeatedly find matches, remove them, drop candies and refill.
         If return_frames is True, also collect intermediate board snapshots (frames)
@@ -173,8 +192,9 @@ class Board:
             if return_frames:
                 frames.append([row.copy() for row in self.board])
             
-            self.drop()            
-            self.fill()
+            self.drop()
+            if refill:       
+                self.fill()
             
             # Capture after refill
             if return_frames:

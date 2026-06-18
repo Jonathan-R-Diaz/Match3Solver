@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from candy_crush.game import Game
-
+from time import sleep
 
 def pick_first(moves):
     return moves[0]
@@ -12,20 +12,17 @@ def pick_last(moves):
 
 def most_pop(game, moves):
     # Pick the move that would crush the most candies
-    max_crush = -1
+    max_crush = 0
     best_move = None
     for move in moves:
         r1, c1, d = move
-        r2, c2 = game.board.get_neighbor(r1, c1, d)
-        game.board.swap(r1, c1, r2, c2)
-        crush_count = len(game.board.find_matches())
-        game.board.swap(r1, c1, r2, c2)  # swap back
+        crush_count = game.board.simulate_move(r1, c1, d)
+
         #print(f"\t[debug] Evaluating move: {move} -> swap ({r1}, {c1}) with ({r2}, {c2}) -> crush_count: {crush_count}")
         if crush_count >= max_crush:
             max_crush = crush_count
             best_move = move
     
-    print(f"[debug] best_move: {best_move} with crush_count: {max_crush}")
     return best_move
 
 
