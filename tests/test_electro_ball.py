@@ -19,7 +19,7 @@ def test_find_5_in_a_row():
     assert matches == expected_matches
 
 
-def test_create_5_powerup_board():
+def test_create_electro_on_board():
     b = Board(rows=5, cols=6)
     # Create a horizontal match of 5 to test power-up creation
     b.board = [
@@ -49,7 +49,7 @@ def test_create_5_powerup_board():
     ('$', 6),
     ('&', 6),
 ])
-def test_5_powerup(ch: str, count: int):
+def test_electro_power(ch: str, count: int):
     print("in test")
     if ch == ' ':
         move = (4, 0, "x")
@@ -77,7 +77,7 @@ def test_5_powerup(ch: str, count: int):
     assert b.board[4][0] == ' '
 
 
-def test_5_powerup_valid_moves():
+def test_electro_valid_moves():
     b = Board(rows=3, cols=3, seed=0)
     # Force a simple match board: three same in first row
     b.board = [
@@ -88,23 +88,3 @@ def test_5_powerup_valid_moves():
     matches = b.valid_moves()
     expected_matches = [(1,1,"x"),(1,1,"w"),(1,1,"a"),(1,1,"s"),(1,1,"d")]
     assert matches == expected_matches
-
-
-def test_5_powerup_count():
-    move = (4, 0, "x")
-    b = Board(rows=5, cols=5)
-
-    # Create a horizontal match of 5 to test power-up creation
-    b.board = [
-        ['@', '@', '#', '$', '&'],
-        ['@', '@', '#', '$', '&'],
-        ['@', '@', '#', '$', '&'],
-        ['@' ,'@', '#', '$', '&'],
-        ['5', '@', '#', '$', '&']
-    ]
-    r1, c1, d = move
-    r2, c2 = b.get_neighbor(*move)
-    crushed = b.activate_powerup(r1, c1, r2, c2)
-
-    assert crushed == 9
-    assert b.board[4][0] == ' '
