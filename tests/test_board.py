@@ -33,6 +33,8 @@ def test_crush_removes_matches_and_refills():
         ['#', '$', '&'],
         ['$', '&', '#']
     ]
+    print("From test:")
+    b.print_board()
     crushed = b.crush()
     assert crushed >= 3
     # After crush there should be no immediate matches

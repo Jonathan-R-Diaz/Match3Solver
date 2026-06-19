@@ -55,6 +55,8 @@ class Game:
             power_pops += self.board.activate_powerup(r, c, r2, c2)
         else:
             self.board.swap(r, c, r2, c2)
+        
+        self.board.last_move = ((r, c), (r2, c2))
 
         if animate:
             crushed, frames = self.board.crush(return_frames=True)

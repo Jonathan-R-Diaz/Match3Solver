@@ -22,6 +22,7 @@ class Board:
         random.seed(seed)
         self.rows = rows
         self.cols = cols
+        self.last_move = None
 
         while True:
             self.board = [
@@ -137,6 +138,12 @@ class Board:
         return r + dr, c + dc
 
 
+    def positioned_for_upgrade(self, r, c):
+        return  self.last_move \
+        and ((r == self.last_move[0][0] and c == self.last_move[0][1]) \
+        or  (r == self.last_move[1][0] and c == self.last_move[1][1]))
+
+
     def find_matches(self):
         """Return a set of (row, col) positions that are part of matches."""
         matched = set()
@@ -144,48 +151,58 @@ class Board:
         # Horizontal matches
         for r in range(self.rows):
             count = 1
-            for c in range(1, self.cols):
-                if self.board[r][c] == self.board[r][c - 1] and self.board[r][c] != " ":
+            for c in range(self.cols - 1):
+                if self.board[r][c] == self.board[r][c + 1] and self.board[r][c] != " ":
                     count += 1
-                else:
+
+                if self.board[r][c] != self.board[r][c + 1] or c == self.cols - 2:
                     if count >= 3:
-                        for k in range(c - count, c):
+                        for k in range(self.cols - count, self.cols):
                             matched.add((r, k))
+                    if count == 4:
+                        placed = False
+                        candy = 0
+                        for k in range(self.cols - count, self.cols):
+                            candy += 1
+                            if self.positioned_for_upgrade(r, k) \
+                            or (candy == 3 and not placed):
+                                self.board[r][k] = "4"
+                                placed = True
+                    if count >= 5:
+                        candy = 0
+                        for k in range(self.cols - count, self.cols):
+                            candy += 1
+                            if candy == 3: 
+                                self.board[r][k] = "5"
                     count = 1
-            if count == 3 or count == 4:
-                for k in range(self.cols - count, self.cols):
-                    matched.add((r, k))
-            elif count >= 5:
-                candy = 0
-                for k in range(self.cols - count, self.cols):
-                    candy += 1
-                    if candy == 3: 
-                        self.board[r][k] = "5"
-                        matched.add((r, k))
-                    matched.add((r, k))
+
 
         # Vertical matches
         for c in range(self.cols):
             count = 1
-            for r in range(1, self.rows):
-                if self.board[r][c] == self.board[r - 1][c] and self.board[r][c] != " ":
+            for r in range(self.rows - 1):
+                if self.board[r][c] == self.board[r + 1][c] and self.board[r][c] != " ":
                     count += 1
-                else:
+                if self.board[r][c] != self.board[r + 1][c] or r == self.rows - 2:
                     if count >= 3:
-                        for k in range(r - count, r):
+                        for k in range(self.rows - count, self.rows):
                             matched.add((k, c))
+                    if count == 4:
+                        placed = False
+                        candy = 0
+                        for k in range(self.rows - count, self.rows):
+                            candy += 1
+                            if self.positioned_for_upgrade(k, c) \
+                            or (candy == 3 and not placed):
+                                self.board[k][c] = "4"
+                                placed = True
+                    elif count >= 5:
+                        candy = 0
+                        for k in range(self.rows - count, self.rows):
+                            candy += 1
+                            if candy == 3: 
+                                self.board[k][c] = "5"
                     count = 1
-            if count == 3 or count == 4:
-                for k in range(self.rows - count, self.rows):
-                    matched.add((k, c))
-            elif count >= 5:
-                candy = 0
-                for k in range(self.rows - count, self.rows):
-                    candy += 1
-                    if candy == 3: 
-                        self.board[k][c] = "5"
-                        matched.add((k, c))
-                    matched.add((k, c))
 
         return matched
     
