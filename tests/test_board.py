@@ -105,8 +105,14 @@ def test_create_5_powerup_board():
     assert b.board == expected_board  # Check that the power-up was created in the expected location
 
 
-@pytest.mark.parametrize("ch", [' ', '@', '#', '$', '&'])
-def test_5_powerup(ch: str):
+@pytest.mark.parametrize("ch, count", [
+    (' ', 8),
+    ('@', 9),
+    ('#', 6),
+    ('$', 6),
+    ('&', 6),
+])
+def test_5_powerup(ch: str, count: int):
     print("in test")
     if ch == ' ':
         move = (4, 0, "x")
@@ -124,12 +130,13 @@ def test_5_powerup(ch: str):
     ]
     r1, c1, d = move
     r2, c2 = b.get_neighbor(*move)
-    b.activate_powerup(r1, c1, r2, c2)
+    crushed = b.activate_powerup(r1, c1, r2, c2)
 
     if ch == " ":
         ch = "@"
     for row in b.board:
         assert ch not in row
+    assert crushed == count
     assert b.board[4][0] == ' '
 
 
@@ -144,3 +151,23 @@ def test_5_powerup_valid_moves():
     matches = b.valid_moves()
     expected_matches = [(1,1,"x"),(1,1,"w"),(1,1,"a"),(1,1,"s"),(1,1,"d")]
     assert matches == expected_matches
+
+
+def test_5_powerup_count():
+    move = (4, 0, "x")
+    b = Board(rows=5, cols=5)
+
+    # Create a horizontal match of 5 to test power-up creation
+    b.board = [
+        ['@', '@', '#', '$', '&'],
+        ['@', '@', '#', '$', '&'],
+        ['@', '@', '#', '$', '&'],
+        ['@' ,'@', '#', '$', '&'],
+        ['5', '@', '#', '$', '&']
+    ]
+    r1, c1, d = move
+    r2, c2 = b.get_neighbor(*move)
+    crushed = b.activate_powerup(r1, c1, r2, c2)
+
+    assert crushed == 9
+    assert b.board[4][0] == ' '

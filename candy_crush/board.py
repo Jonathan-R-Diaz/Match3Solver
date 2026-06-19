@@ -67,13 +67,14 @@ class Board:
         # Power up must be on r1, c1
         if self.board[r1][c1] == "4":
             raise ValueError("lol that shouldnt exist yet")
-        
         if r1 == r2 and c1 == c2:
-            self.clear_candies(self.get_most_candy())
+            crushed = self.clear_candies(self.get_most_candy())
         else:
-            self.clear_candies(self.board[r2][c2])
+            crushed = self.clear_candies(self.board[r2][c2])
 
         self.board[r1][c2] = " "
+        print(f"Power-up crushed {crushed} candies!")
+        return crushed
 
 
     def get_most_candy(self):
@@ -91,11 +92,18 @@ class Board:
         return most_candy
             
 
-    def clear_candies(self, candy):
+    def clear_candies(self, candy, drop=True):
+        crushed = 0
         for row in self.board:
             for i in range(self.cols):
                 if row[i] == candy:
                     row[i] = " "
+                    crushed += 1
+        if drop:
+            self.drop()
+        
+        print(f"Power-up crushed {crushed} '{candy}' candies!")
+        return crushed
 
 
     def print_board(self, score = -1):
