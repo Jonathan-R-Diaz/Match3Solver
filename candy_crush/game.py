@@ -50,7 +50,11 @@ class Game:
             
 
         r2, c2 = self.board.get_neighbor(r, c, d)
-        self.board.swap(r, c, r2, c2)
+        
+        if self.board.board[r][c] == "4" or self.board.board[r][c] == "5":
+            self.board.activate_powerup(r, c, r2, c2)
+        else:
+            self.board.swap(r, c, r2, c2)
 
         if animate:
             crushed, frames = self.board.crush(return_frames=True)

@@ -11,6 +11,7 @@
 #   Matched candies are removed, candies above fall down, and new candies appear.
 
 import random
+from collections import defaultdict
 
 CANDIES = ["$", "#", "&", "@", "*"]
 
@@ -40,6 +41,7 @@ class Board:
         new_board.board = [row.copy() for row in self.board]
         return new_board
     
+
     def simulate_move(self, r, c, direction, revert=True) -> int:
         if revert:
             previous_board = [row.copy() for row in self.board]
@@ -58,6 +60,42 @@ class Board:
             self.board = previous_board  # revert to original state
 
         return crush_count
+
+
+    def activate_powerup(self, r1: int, c1: int, r2: int, c2: int):
+        print("Activating powerup on", r1, c1)
+        # Power up must be on r1, c1
+        if self.board[r1][c1] == "4":
+            raise ValueError("lol that shouldnt exist yet")
+        
+        if r1 == r2 and c1 == c2:
+            self.clear_candies(self.get_most_candy())
+        else:
+            self.clear_candies(self.board[r2][c2])
+
+        self.board[r1][c2] = " "
+
+
+    def get_most_candy(self):
+        freq = defaultdict(int)
+        most_freq = -1
+        most_candy = None
+        for row in self.board:
+            for c in row:
+                freq[c] += 1
+                if freq[c] > most_freq:
+                    most_freq = freq[c]
+                    most_candy = c
+        
+        assert most_candy, "Most candy is None"
+        return most_candy
+            
+
+    def clear_candies(self, candy):
+        for row in self.board:
+            for i in range(self.cols):
+                if row[i] == candy:
+                    row[i] = " "
 
 
     def print_board(self, score = -1):
@@ -83,6 +121,7 @@ class Board:
             "s": (1, 0),
             "a": (0, -1),
             "d": (0, 1),
+            "x": (0, 0)
         }
         dr, dc = moves[direction]
         if direction not in moves or r + dr >= self.rows or c + dc >= self.cols:
@@ -260,8 +299,10 @@ class Board:
         moves = []
         for r in range(self.rows):
             for c in range(self.cols):
+                if self.board[r][c] in ["4", "5"]:
+                    moves.append((r,c,"x"))
                 for d in ["w", "a", "s", "d"]:
-                    if self.is_valid_move(r, c, d):
+                    if self.is_valid_move(r, c, d) or self.board[r][c] in ["4", "5"]:
                         moves.append((r,c,d))
         return moves
 
