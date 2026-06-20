@@ -113,11 +113,11 @@ class Board:
 
 
     def print_board(self, score = -1):
-        print("\n   " + " ".join(str(c) for c in range(self.cols)))
-        print("  +" + "--" * self.cols + "+")
+        print("\n    " + " ".join(str(c) for c in range(self.cols)))
+        print("  +" + "--" * self.cols + "-+")
         for r in range(self.rows):
-            print(f"{r}|" + " ".join(self.board[r]) + "|")
-        print("  +" + "--" * self.cols + "+")
+            print(f"{r} | " + " ".join(self.board[r]) + " |")
+        print("  +" + "--" * self.cols + "-+")
         print(f"Score: {score}\n")
 
 
@@ -166,18 +166,19 @@ class Board:
 
                     if self.board[r][c] == self.board[r][c + 1] and c == self.cols - 2:
                         c += 1
-                        print("c", c) 
                     if count >= 3:
                         for k in range(c - count + 1, c + 1):
-                            print(r, k)
                             matched.add((r, k))
                     if count == 4:
                         placed = False
                         candy = 0
                         for k in range(c - count + 1, c + 1):
                             candy += 1
+                            if self.positioned_for_upgrade(r, k):
+                                print("The 4 should be placed on", r, k)
                             if self.positioned_for_upgrade(r, k) \
                             or (candy == 3 and not placed):
+                                print("The 4 will be placed on", r, k)
                                 self.board[r][k] = "4"
                                 placed = True
                     if count >= 5:
@@ -229,7 +230,7 @@ class Board:
 
         # Remove matched candies
         for r, c in matches:
-            if self.board[r][c] != "5":
+            if self.board[r][c] != "5" and self.board[r][c] != "4":
                 self.board[r][c] = " "
 
         return len(matches)
