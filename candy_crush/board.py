@@ -12,25 +12,30 @@
 
 import random
 from collections import defaultdict
+from typing import List
 
 CANDIES = ["$", "#", "&", "@", "*"]
 
 class Board:
     
-    def __init__(self, rows=5, cols=5, seed=0):
+    def __init__(self, rows=5, cols=5, seed=0, board_state: List[List[str]] = None):
         """Generate a board with no initial matches."""
         random.seed(seed)
-        self.rows = rows
-        self.cols = cols
         self.last_move = None
-
-        while True:
-            self.board = [
-                [random.choice(CANDIES) for _ in range(cols)]
-                for _ in range(rows)
-            ]
-            if not self.find_matches():
-                break
+        if board_state:
+            self.board = board_state
+            self.rows = len(self.board)
+            self.cols = len(self.board[0])
+        else:
+            self.rows = rows
+            self.cols = cols
+            while True:
+                self.board = [
+                    [random.choice(CANDIES) for _ in range(cols)]
+                    for _ in range(rows)
+                ]
+                if not self.find_matches():
+                    break
 
 
     def get_board(self):
