@@ -150,6 +150,7 @@ class Board:
 
 
     def find_matches(self):
+        #TODO: Randomize where the powerup gets placed if it was part of a cascade
         """Return a set of (row, col) positions that are part of matches."""
         matched = set()
         self.rows = len(self.board)
