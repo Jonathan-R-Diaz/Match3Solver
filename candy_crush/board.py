@@ -149,9 +149,11 @@ class Board:
         or  (r == self.last_move[1][0] and c == self.last_move[1][1]))
 
 
-    def find_matches(self):
-        #TODO: Randomize where the powerup gets placed if it was part of a cascade
+    def find_matches(self) -> set:
         """Return a set of (row, col) positions that are part of matches."""
+        
+        #TODO: Randomize where the powerup gets placed if it was part of a cascade
+        
         matched = set()
         self.rows = len(self.board)
         self.cols = len(self.board[0])
@@ -175,11 +177,8 @@ class Board:
                         candy = 0
                         for k in range(c - count + 1, c + 1):
                             candy += 1
-                            if self.positioned_for_upgrade(r, k):
-                                print("The 4 should be placed on", r, k)
                             if self.positioned_for_upgrade(r, k) \
                             or (candy == 3 and not placed):
-                                print("The 4 will be placed on", r, k)
                                 self.board[r][k] = "4"
                                 placed = True
                     if count >= 5:
