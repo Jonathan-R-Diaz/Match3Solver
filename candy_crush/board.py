@@ -147,6 +147,8 @@ class Board:
     def find_matches(self):
         """Return a set of (row, col) positions that are part of matches."""
         matched = set()
+        self.rows = len(self.board)
+        self.cols = len(self.board[0])
 
         # Horizontal matches
         for r in range(self.rows):
@@ -156,13 +158,18 @@ class Board:
                     count += 1
 
                 if self.board[r][c] != self.board[r][c + 1] or c == self.cols - 2:
+
+                    if self.board[r][c] == self.board[r][c + 1] and c == self.cols - 2:
+                        c += 1
+                        print("c", c) 
                     if count >= 3:
-                        for k in range(self.cols - count, self.cols):
+                        for k in range(c - count + 1, c + 1):
+                            print(r, k)
                             matched.add((r, k))
                     if count == 4:
                         placed = False
                         candy = 0
-                        for k in range(self.cols - count, self.cols):
+                        for k in range(c - count + 1, c + 1):
                             candy += 1
                             if self.positioned_for_upgrade(r, k) \
                             or (candy == 3 and not placed):
@@ -170,7 +177,7 @@ class Board:
                                 placed = True
                     if count >= 5:
                         candy = 0
-                        for k in range(self.cols - count, self.cols):
+                        for k in range(c - count + 1, c + 1):
                             candy += 1
                             if candy == 3: 
                                 self.board[r][k] = "5"
@@ -183,9 +190,12 @@ class Board:
             for r in range(self.rows - 1):
                 if self.board[r][c] == self.board[r + 1][c] and self.board[r][c] != " ":
                     count += 1
+
                 if self.board[r][c] != self.board[r + 1][c] or r == self.rows - 2:
+                    if self.board[r][c] == self.board[r + 1][c] and r == self.rows - 2:
+                        r += 1
                     if count >= 3:
-                        for k in range(self.rows - count, self.rows):
+                        for k in range(r - count + 1, r + 1):
                             matched.add((k, c))
                     if count == 4:
                         placed = False

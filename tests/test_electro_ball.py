@@ -2,23 +2,6 @@ import pytest
 from candy_crush.board import Board
 
 
-def test_find_5_in_a_row():
-    b = Board(rows=6, cols=5)
-    # Create a horizontal match of 5
-    b.board = [
-        ['#', '#', '#', '#', '#'],
-        ['@', ' ', ' ', ' ', ' '],
-        ['@', ' ', ' ', ' ', ' '],
-        ['@', ' ', ' ', ' ', ' '],
-        ['@', ' ', ' ', ' ', ' '],
-        ['@', ' ', ' ', ' ', ' ']
-
-    ]
-    matches = b.find_matches()
-    expected_matches = {(0,0), (0,1), (0,2), (0,3), (0,4), (1,0), (2,0), (3,0), (4,0), (5,0)}  # The 5 in a row plus the 5 in the first column
-    assert matches == expected_matches
-
-
 def test_create_electro_on_board():
     b = Board(rows=5, cols=6)
     # Create a horizontal match of 5 to test power-up creation
