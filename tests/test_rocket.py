@@ -9,7 +9,7 @@ from candy_crush.board import Board
             [' ', '$', ' ', ' ', ' ']
         ], 
         [
-            [' ', '4', ' ', ' ', ' '], 
+            [' ', 'H', ' ', ' ', ' '], 
             [' ', ' ', ' ', ' ', ' ']
         ],
             (1, 1, 0, 1)
@@ -20,7 +20,7 @@ from candy_crush.board import Board
             [' ', ' ', '$', ' ', ' ', ' ']
         ], 
         [
-            [' ', ' ', '4', ' ', ' ', ' '], 
+            [' ', ' ', 'H', ' ', ' ', ' '], 
             [' ', ' ', ' ', ' ', ' ', ' ']
         ],
             (1, 2, 0, 2)
@@ -31,7 +31,7 @@ from candy_crush.board import Board
             [' ', ' ', '$', ' ', ' ']
         ], 
         [
-            [' ', ' ', '4', ' ', ' '], 
+            [' ', ' ', 'H', ' ', ' '], 
             [' ', ' ', ' ', ' ', ' ']
         ],
             (1, 2, 0, 2)
@@ -42,7 +42,7 @@ from candy_crush.board import Board
             [' ', ' ', '$', ' ', ' ']
         ], 
         [
-            [' ', ' ', '4', ' ', ' '], 
+            [' ', ' ', 'H', ' ', ' '], 
             [' ', ' ', ' ', ' ', ' ']
         ],
             (1, 2, 0, 2)
@@ -53,7 +53,7 @@ from candy_crush.board import Board
             [' ', ' ', ' ', '$', ' ', ' ']
         ], 
         [
-            [' ', ' ', ' ', '4', ' ', ' '], 
+            [' ', ' ', ' ', 'H', ' ', ' '], 
             [' ', ' ', ' ', ' ', ' ', ' ']
         ],
             (1, 3, 0, 3)
@@ -64,7 +64,7 @@ from candy_crush.board import Board
             [' ', ' ', ' ', '$', ' ']
         ], 
         [
-            [' ', ' ', ' ', '4', ' '], 
+            [' ', ' ', ' ', 'H', ' '], 
             [' ', ' ', ' ', ' ', ' ']
         ],
             (1, 3, 0, 3)
@@ -76,7 +76,7 @@ from candy_crush.board import Board
         ],
         [
             [' ', ' ', ' ', ' ', ' '],
-            [' ', '4', ' ', ' ', ' ']
+            [' ', 'H', ' ', ' ', ' ']
         ],
             (0, 1, 1, 1)
         ),
@@ -87,7 +87,7 @@ from candy_crush.board import Board
         ],
         [
             [' ', ' ', ' ', ' ', ' ', ' '],
-            [' ', ' ', '4', ' ', ' ', ' ']
+            [' ', ' ', 'H', ' ', ' ', ' ']
         ],
             (0, 2, 1, 2)
         ),
@@ -98,7 +98,7 @@ from candy_crush.board import Board
         ],
         [
             [' ', ' ', ' ', ' ', ' '],
-            [' ', ' ', '4', ' ', ' ']
+            [' ', ' ', 'H', ' ', ' ']
         ],
             (0, 2, 1, 2)
         ),
@@ -109,7 +109,7 @@ from candy_crush.board import Board
         ],
         [
             [' ', ' ', ' ', ' ', ' '],
-            [' ', ' ', '4', ' ', ' ']
+            [' ', ' ', 'H', ' ', ' ']
         ],
             (0, 2, 1, 2)
         ),
@@ -120,7 +120,7 @@ from candy_crush.board import Board
         ],
         [
             [' ', ' ', ' ', ' ', ' ', ' '],
-            [' ', ' ', ' ', '4', ' ', ' ']
+            [' ', ' ', ' ', 'H', ' ', ' ']
         ],
             (0, 3, 1, 3)
         ),
@@ -131,7 +131,7 @@ from candy_crush.board import Board
         ],
         [
             [' ', ' ', ' ', ' ', ' '],
-            [' ', ' ', ' ', '4', ' ']
+            [' ', ' ', ' ', 'H', ' ']
         ],
             (0, 3, 1, 3)
         ),
@@ -145,9 +145,8 @@ from candy_crush.board import Board
 )
 @pytest.mark.board
 def test_spawn_rocket_horizontal(start_board, expected_board, move):
-    b = Board(board_state=start_board)
+    b = Board(board_state=start_board, debug=True)
     
-    print(move)
     r1, c1, r2, c2 = move
     b.swap(r1, c1, r2, c2)
     b.last_move = ((r1, c1), (r2, c2))
@@ -167,7 +166,7 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
         ], 
         [
             [' ', ' '], 
-            ['4', ' '],
+            ['H', ' '],
             [' ', ' '], 
             [' ', ' '], 
             [' ', ' ']
@@ -186,7 +185,7 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
         [
             [' ', ' '],
             [' ', ' '], 
-            ['4', ' '],
+            ['H', ' '],
             [' ', ' '], 
             [' ', ' '], 
             [' ', ' ']
@@ -204,7 +203,7 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
         [
             [' ', ' '],
             [' ', ' '], 
-            ['4', ' '],
+            ['H', ' '],
             [' ', ' '], 
             [' ', ' '], 
         ],
@@ -221,7 +220,7 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
         [
             [' ', ' '], 
             [' ', ' '],
-            ['4', ' '], 
+            ['H', ' '], 
             [' ', ' '], 
             [' ', ' ']
         ],
@@ -240,7 +239,7 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
             [' ', ' '],
             [' ', ' '], 
             [' ', ' '],
-            ['4', ' '], 
+            ['H', ' '], 
             [' ', ' '], 
             [' ', ' ']
         ],
@@ -258,7 +257,7 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
             [' ', ' '],
             [' ', ' '], 
             [' ', ' '],
-            ['4', ' '], 
+            ['H', ' '], 
             [' ', ' '], 
         ],
             (3, 1, 3, 0)
@@ -273,7 +272,7 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
         ],
         [
             [' ', ' '],
-            [' ', '4'],
+            [' ', 'H'],
             [' ', ' '],
             [' ', ' '],
             [' ', ' ']
@@ -292,7 +291,7 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
         [
             [' ', ' '],
             [' ', ' '],
-            [' ', '4'],
+            [' ', 'H'],
             [' ', ' '],
             [' ', ' '],
             [' ', ' ']
@@ -310,7 +309,7 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
         [
             [' ', ' '],
             [' ', ' '],
-            [' ', '4'],
+            [' ', 'H'],
             [' ', ' '],
             [' ', ' ']
         ],
@@ -327,7 +326,7 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
         [
             [' ', ' '],
             [' ', ' '],
-            [' ', '4'],
+            [' ', 'H'],
             [' ', ' '],
             [' ', ' ']
         ],
@@ -346,7 +345,7 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
             [' ', ' '],
             [' ', ' '],
             [' ', ' '],
-            [' ', '4'],
+            [' ', 'H'],
             [' ', ' '],
             [' ', ' ']
         ],
@@ -364,7 +363,7 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
             [' ', ' '],
             [' ', ' '],
             [' ', ' '],
-            [' ', '4'],
+            [' ', 'H'],
             [' ', ' ']
         ],
             (3, 0, 3, 1)
@@ -379,9 +378,8 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
 )
 @pytest.mark.board
 def test_spawn_rocket_vertical(start_board, expected_board, move):
-    b = Board(board_state=start_board)
+    b = Board(board_state=start_board, debug=True)
     
-    print(move)
     r1, c1, r2, c2 = move
     b.swap(r1, c1, r2, c2)
     b.last_move = ((r1, c1), (r2, c2))

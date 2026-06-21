@@ -18,10 +18,11 @@ CANDIES = ["$", "#", "&", "@", "*"]
 
 class Board:
     
-    def __init__(self, rows=5, cols=5, seed=0, board_state: List[List[str]] = None):
+    def __init__(self, rows=5, cols=5, seed=0, board_state: List[List[str]] = None, debug = False):
         """Generate a board with no initial matches."""
         random.seed(seed)
         self.last_move = None
+        self.debug = debug
         if board_state:
             self.board = board_state
             self.rows = len(self.board)
@@ -213,7 +214,7 @@ class Board:
                             candy += 1
                             if self.positioned_for_upgrade(r, k) \
                             or (candy == 3 and not placed):
-                                self.board[r][k] = "4"
+                                self.board[r][k] = self.random_rocket()
                                 placed = True
                     if count >= 5:
                         candy = 0
@@ -244,7 +245,7 @@ class Board:
                             candy += 1
                             if self.positioned_for_upgrade(k, c) \
                             or (candy == 3 and not placed):
-                                self.board[k][c] = "4"
+                                self.board[k][c] = self.random_rocket()
                                 placed = True
                     elif count >= 5:
                         candy = 0
@@ -264,7 +265,7 @@ class Board:
 
         # Remove matched candies
         for r, c in matches:
-            if self.board[r][c] != "5" and self.board[r][c] != "4":
+            if self.board[r][c] != "5" and self.board[r][c] != "V" and self.board[r][c] != "H":
                 self.board[r][c] = " "
 
         return len(matches)
@@ -391,3 +392,10 @@ class Board:
             if not self.find_matches() and self.has_possible_moves():
                 return
 
+
+    def random_rocket(self):
+        heads = random.choice([True, False])
+        if self.debug or heads:
+            return "H"
+
+        return "V"
