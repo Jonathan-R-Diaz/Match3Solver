@@ -390,7 +390,6 @@ def test_spawn_rocket_vertical(start_board, expected_board, move):
     assert b.board == expected_board
 
 
-@pytest.mark.board
 @pytest.mark.parametrize("move, ch", 
     [
         ((1, 2, "w"), "@"),
@@ -402,6 +401,7 @@ def test_spawn_rocket_vertical(start_board, expected_board, move):
     ],
     ids = ["w", "s", "x", "a", "d"]
 )
+@pytest.mark.board
 def test_rocket_power_horizontal(move, ch):
     b = Board(board_state=[
         ['@', '@', '#', '@', '@'],
@@ -419,7 +419,6 @@ def test_rocket_power_horizontal(move, ch):
         assert "H" not in row
 
 
-@pytest.mark.board
 @pytest.mark.parametrize("move, ch", 
     [
         ((2, 1, "w"), "$"),
@@ -431,6 +430,7 @@ def test_rocket_power_horizontal(move, ch):
     ],
     ids = ["w", "s", "x", "a", "d"]
 )
+@pytest.mark.board
 def test_rocket_power_vertical(move, ch):
     b = Board(board_state=[
         ['@', '$', '&'],
