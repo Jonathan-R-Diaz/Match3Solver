@@ -69,16 +69,25 @@ class Board:
 
 
     def activate_powerup(self, r1: int, c1: int, r2: int, c2: int):
+
         print("Activating powerup on", r1, c1)
-        # Power up must be on r1, c1
-        if self.board[r1][c1] == "4":
-            raise ValueError("lol that shouldnt exist yet")
-        if r1 == r2 and c1 == c2:
+        crushed = 0
+        if self.board[r2][c2] == "V" or self.board[r2][c2] == "H":
+            r1, c1 = r2, c2     
+        if self.board[r1][c1] == "H":
+            self.board[r1][c1] = " "
+            self.print_board()
+            crushed += self.clear_row(r1)
+        elif self.board[r1][c1] == "V":
+            self.board[r1][c1] = " "
+            self.print_board()
+            crushed += self.clear_col(c1)
+        elif r1 == r2 and c1 == c2 and self.board[r1][c1] == "5":
             crushed = self.clear_candies(self.get_most_candy())
-        else:
+        elif self.board[r1][c1] == "5" or self.board[r2][c2] == "5":
             crushed = self.clear_candies(self.board[r2][c2])
 
-        self.board[r1][c2] = " "
+        self.board[r1][c1] = " "
         print(f"Power-up crushed {crushed} candies!")
         return crushed
 
@@ -109,6 +118,31 @@ class Board:
             self.drop()
         
         print(f"Power-up crushed {crushed} '{candy}' candies!")
+        return crushed
+
+
+    def clear_col(self, c):
+        crushed = 0
+        for i in range(self.rows):
+            if self.board[i][c] == '5' or self.board[i][c] == 'V' or self.board[i][c] == 'H':
+                crushed += self.activate_powerup(i, c, i, c)
+            if self.board[i][c] != " ":
+                self.board[i][c] = " "
+                crushed += 1
+        
+        return crushed
+
+
+    def clear_row(self, r):
+        crushed = 0
+        for j in range(self.cols):
+            if self.board[r][j] == '5' or self.board[r][j] == 'V' or self.board[r][j] == 'H':
+                crushed += self.activate_powerup(r, j, r, j)
+                print("Back in clear_row")
+            if self.board[r][j] != " ":
+                self.board[r][j] = " "
+                crushed += 1
+        
         return crushed
 
 
