@@ -482,3 +482,15 @@ def test_rocket_chain_heavy():
     for row in b.board:
         for ch in row:
             assert ch == " "
+
+
+@pytest.mark.parametrize("rkt", ["V", "H"])
+def test_rocket_valid_moves(rkt):
+    b = Board(board_state = [
+        [' ', '@', ' '],
+        ['#', rkt, '&'],
+        [' ', '&', ' ']
+    ])
+    matches = b.valid_moves()
+    expected_matches = [(1,1,"x"),(1,1,"w"),(1,1,"a"),(1,1,"s"),(1,1,"d")]
+    assert matches == expected_matches

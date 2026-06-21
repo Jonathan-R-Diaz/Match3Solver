@@ -374,10 +374,10 @@ class Board:
         moves = []
         for r in range(self.rows):
             for c in range(self.cols):
-                if self.board[r][c] in ["4", "5"]:
+                if self.board[r][c] in ["V", "H", "5"]:
                     moves.append((r,c,"x"))
                 for d in ["w", "a", "s", "d"]:
-                    if self.is_valid_move(r, c, d) or self.board[r][c] in ["4", "5"]:
+                    if self.is_valid_move(r, c, d) or self.board[r][c] in ["V", "H", "5"]:
                         moves.append((r,c,d))
         return moves
 
