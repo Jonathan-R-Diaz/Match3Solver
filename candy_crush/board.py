@@ -82,6 +82,15 @@ class Board:
             print(f"Power-up crushed {crushed} candies!")
             return crushed
 
+        # Rocket + Rocket combo: fire a + (row + col) from the target cell
+        if self.board[r1][c1] in ("V", "H") and self.board[r2][c2] in ("V", "H") and not (r1 == r2 and c1 == c2):
+            self.board[r1][c1] = " "
+            self.board[r2][c2] = " "
+            crushed += self.clear_row(r2)
+            crushed += self.clear_col(c2)
+            print(f"Power-up crushed {crushed} candies!")
+            return crushed
+
         if self.board[r2][c2] in ("V", "H", "T"):
             r1, c1 = r2, c2
         if self.board[r1][c1] == "H":
