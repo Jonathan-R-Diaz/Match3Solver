@@ -60,18 +60,20 @@ class Board:
         if not self.in_bounds(r, c) or not self.in_bounds(r2, c2):
             return None
 
-        # Test swap
-        self.swap(r, c, r2, c2)
-        crush_count = self.crush(return_frames=False, refill=False)
+        crush_count = 0
+        if self.board[r][c] in ("5", "V", "H", "T"):
+            crush_count += self.activate_powerup(r, c, r2, c2)
+            self.drop()
+        else:
+            self.swap(r, c, r2, c2)
+        crush_count += self.crush(return_frames=False, refill=False)
         if revert:
-            self.board = previous_board  # revert to original state
+            self.board = previous_board
 
         return crush_count
 
 
     def activate_powerup(self, r1: int, c1: int, r2: int, c2: int):
-
-        print("Activating powerup on", r1, c1)
         crushed = 0
 
         # TNT + TNT combo: double-radius blast
@@ -79,7 +81,6 @@ class Board:
             self.board[r1][c1] = " "
             self.board[r2][c2] = " "
             crushed += self.clear_area(r1, c1, radius=4)
-            print(f"Power-up crushed {crushed} candies!")
             return crushed
 
         # Rocket + Rocket combo: fire a + (row + col) from the target cell
@@ -88,18 +89,15 @@ class Board:
             self.board[r2][c2] = " "
             crushed += self.clear_row(r2)
             crushed += self.clear_col(c2)
-            print(f"Power-up crushed {crushed} candies!")
             return crushed
 
         if self.board[r2][c2] in ("V", "H", "T"):
             r1, c1 = r2, c2
         if self.board[r1][c1] == "H":
             self.board[r1][c1] = " "
-            self.print_board()
             crushed += self.clear_row(r1)
         elif self.board[r1][c1] == "V":
             self.board[r1][c1] = " "
-            self.print_board()
             crushed += self.clear_col(c1)
         elif self.board[r1][c1] == "T":
             self.board[r1][c1] = " "
@@ -110,7 +108,6 @@ class Board:
             crushed = self.clear_candies(self.board[r2][c2])
 
         self.board[r1][c1] = " "
-        print(f"Power-up crushed {crushed} candies!")
         return crushed
 
 
@@ -139,7 +136,6 @@ class Board:
         if drop:
             self.drop()
         
-        print(f"Power-up crushed {crushed} '{candy}' candies!")
         return crushed
 
 
@@ -175,7 +171,6 @@ class Board:
         for j in range(self.cols):
             if self.board[r][j] in ('5', 'V', 'H', 'T'):
                 crushed += self.activate_powerup(r, j, r, j)
-                print("Back in clear_row")
             if self.board[r][j] != " ":
                 self.board[r][j] = " "
                 crushed += 1
@@ -421,7 +416,7 @@ class Board:
                 if self.board[r][c] in ["V", "H", "5", "T"]:
                     moves.append((r,c,"x"))
                 for d in ["w", "a", "s", "d"]:
-                    if self.is_valid_move(r, c, d) or self.board[r][c] in ["V", "H", "5", "T"]:
+                    if self.is_valid_move(r, c, d):
                         moves.append((r,c,d))
         return moves
 
