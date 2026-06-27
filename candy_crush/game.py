@@ -51,11 +51,13 @@ class Game:
 
         r2, c2 = self.board.get_neighbor(r, c, d)
         power_pops = 0 
-        if self.board.board[r][c] == "4" or self.board.board[r][c] == "5":
+        if self.board.board[r][c] == "5" or self.board.board[r][c] == "V" or self.board.board[r][c] == "H":
             power_pops += self.board.activate_powerup(r, c, r2, c2)
+            self.board.drop()
+            self.board.fill()
         else:
             self.board.swap(r, c, r2, c2)
-        
+
         self.board.last_move = ((r, c), (r2, c2))
 
         if animate:
@@ -73,8 +75,9 @@ class Game:
         self.score += crushed + power_pops
         self.moves_left -= 1
 
-        print(f"Crushed {crushed} candies!")
-        
+        total = crushed + power_pops
+        print(f"Crushed {total} candies!")
+
         done = self.is_over()
 
         info = {
@@ -83,7 +86,7 @@ class Game:
             "valid_moves": self.board.valid_moves(),
         }
 
-        return self.board.get_board(), crushed, done, info
+        return self.board.get_board(), total, done, info
 
     def is_over(self):
         return (

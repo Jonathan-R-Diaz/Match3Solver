@@ -172,10 +172,13 @@ class Board:
             "d": (0, 1),
             "x": (0, 0)
         }
-        dr, dc = moves[direction]
-        if direction not in moves or r + dr >= self.rows or c + dc >= self.cols:
+        if direction not in moves:
             return None
-        return r + dr, c + dc
+        dr, dc = moves[direction]
+        nr, nc = r + dr, c + dc
+        if nr < 0 or nc < 0 or nr >= self.rows or nc >= self.cols:
+            return None
+        return nr, nc
 
 
     def positioned_for_upgrade(self, r, c):
@@ -184,11 +187,11 @@ class Board:
         or  (r == self.last_move[1][0] and c == self.last_move[1][1]))
 
 
-    def find_matches(self) -> set:
+    def find_matches(self, place_powerups: bool = True) -> set:
         """Return a set of (row, col) positions that are part of matches."""
-        
+
         #TODO: Randomize where the powerup gets placed if it was part of a cascade
-        
+
         matched = set()
         self.rows = len(self.board)
         self.cols = len(self.board[0])
@@ -207,7 +210,7 @@ class Board:
                     if count >= 3:
                         for k in range(c - count + 1, c + 1):
                             matched.add((r, k))
-                    if count == 4:
+                    if place_powerups and count == 4:
                         placed = False
                         candy = 0
                         for k in range(c - count + 1, c + 1):
@@ -216,11 +219,11 @@ class Board:
                             or (candy == 3 and not placed):
                                 self.board[r][k] = self.random_rocket()
                                 placed = True
-                    if count >= 5:
+                    if place_powerups and count >= 5:
                         candy = 0
                         for k in range(c - count + 1, c + 1):
                             candy += 1
-                            if candy == 3: 
+                            if candy == 3:
                                 self.board[r][k] = "5"
                     count = 1
 
@@ -238,7 +241,7 @@ class Board:
                     if count >= 3:
                         for k in range(r - count + 1, r + 1):
                             matched.add((k, c))
-                    if count == 4:
+                    if place_powerups and count == 4:
                         placed = False
                         candy = 0
                         for k in range(self.rows - count, self.rows):
@@ -247,11 +250,11 @@ class Board:
                             or (candy == 3 and not placed):
                                 self.board[k][c] = self.random_rocket()
                                 placed = True
-                    elif count >= 5:
+                    elif place_powerups and count >= 5:
                         candy = 0
                         for k in range(self.rows - count, self.rows):
                             candy += 1
-                            if candy == 3: 
+                            if candy == 3:
                                 self.board[k][c] = "5"
                     count = 1
 
@@ -298,17 +301,6 @@ class Board:
                     self.board[r][c] = random.choice(CANDIES)
 
 
-    def crush(self):
-        """
-        Repeatedly:
-        1. Find matches
-        2. Remove them
-        3. Drop candies
-        4. Fill new candies
-        Returns the total number of candies crushed.
-        """
-        return self.crush(return_frames=False)
-
     def crush(self, return_frames: bool = False, refill: bool = True):
         """
         Repeatedly find matches, remove them, drop candies and refill.
@@ -346,6 +338,9 @@ class Board:
 
 
     def is_valid_move(self, r, c, direction):
+        if self.board[r][c] in ["V", "H", "5"]:
+            return self.get_neighbor(r, c, direction) is not None
+
         neighbor = self.get_neighbor(r, c, direction)
         if neighbor is None:
             return False
@@ -356,7 +351,7 @@ class Board:
 
         # Test swap
         self.swap(r, c, r2, c2)
-        valid = bool(self.find_matches())
+        valid = bool(self.find_matches(place_powerups=False))
         self.swap(r, c, r2, c2)
 
         return valid
