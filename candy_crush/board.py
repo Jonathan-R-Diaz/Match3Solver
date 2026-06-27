@@ -73,8 +73,17 @@ class Board:
 
         print("Activating powerup on", r1, c1)
         crushed = 0
-        if self.board[r2][c2] == "V" or self.board[r2][c2] == "H":
-            r1, c1 = r2, c2     
+
+        # TNT + TNT combo: double-radius blast
+        if self.board[r1][c1] == "T" and self.board[r2][c2] == "T" and not (r1 == r2 and c1 == c2):
+            self.board[r1][c1] = " "
+            self.board[r2][c2] = " "
+            crushed += self.clear_area(r1, c1, radius=4)
+            print(f"Power-up crushed {crushed} candies!")
+            return crushed
+
+        if self.board[r2][c2] in ("V", "H", "T"):
+            r1, c1 = r2, c2
         if self.board[r1][c1] == "H":
             self.board[r1][c1] = " "
             self.print_board()
@@ -83,6 +92,9 @@ class Board:
             self.board[r1][c1] = " "
             self.print_board()
             crushed += self.clear_col(c1)
+        elif self.board[r1][c1] == "T":
+            self.board[r1][c1] = " "
+            crushed += self.clear_area(r1, c1)
         elif r1 == r2 and c1 == c2 and self.board[r1][c1] == "5":
             crushed = self.clear_candies(self.get_most_candy())
         elif self.board[r1][c1] == "5" or self.board[r2][c2] == "5":
@@ -122,10 +134,25 @@ class Board:
         return crushed
 
 
+    def clear_area(self, r, c, radius=2):
+        crushed = 0
+        for dr in range(-radius, radius + 1):
+            for dc in range(-radius, radius + 1):
+                nr, nc = r + dr, c + dc
+                if not self.in_bounds(nr, nc):
+                    continue
+                if self.board[nr][nc] in ['V', 'H', '5', 'T']:
+                    crushed += self.activate_powerup(nr, nc, nr, nc)
+                elif self.board[nr][nc] != ' ':
+                    self.board[nr][nc] = ' '
+                    crushed += 1
+        return crushed
+
+
     def clear_col(self, c):
         crushed = 0
         for i in range(self.rows):
-            if self.board[i][c] == '5' or self.board[i][c] == 'V' or self.board[i][c] == 'H':
+            if self.board[i][c] in ('5', 'V', 'H', 'T'):
                 crushed += self.activate_powerup(i, c, i, c)
             if self.board[i][c] != " ":
                 self.board[i][c] = " "
@@ -137,7 +164,7 @@ class Board:
     def clear_row(self, r):
         crushed = 0
         for j in range(self.cols):
-            if self.board[r][j] == '5' or self.board[r][j] == 'V' or self.board[r][j] == 'H':
+            if self.board[r][j] in ('5', 'V', 'H', 'T'):
                 crushed += self.activate_powerup(r, j, r, j)
                 print("Back in clear_row")
             if self.board[r][j] != " ":
@@ -193,6 +220,8 @@ class Board:
         #TODO: Randomize where the powerup gets placed if it was part of a cascade
 
         matched = set()
+        h_three = set()  # cells in exactly-3 horizontal runs (for TNT detection)
+        v_three = set()  # cells in exactly-3 vertical runs
         self.rows = len(self.board)
         self.cols = len(self.board[0])
 
@@ -210,6 +239,9 @@ class Board:
                     if count >= 3:
                         for k in range(c - count + 1, c + 1):
                             matched.add((r, k))
+                    if count == 3:
+                        for k in range(c - count + 1, c + 1):
+                            h_three.add((r, k))
                     if place_powerups and count == 4:
                         placed = False
                         candy = 0
@@ -241,6 +273,9 @@ class Board:
                     if count >= 3:
                         for k in range(r - count + 1, r + 1):
                             matched.add((k, c))
+                    if count == 3:
+                        for k in range(r - count + 1, r + 1):
+                            v_three.add((k, c))
                     if place_powerups and count == 4:
                         placed = False
                         candy = 0
@@ -258,6 +293,10 @@ class Board:
                                 self.board[k][c] = "5"
                     count = 1
 
+        if place_powerups:
+            for (r, c) in (h_three & v_three):
+                self.board[r][c] = "T"
+
         return matched
     
 
@@ -268,7 +307,7 @@ class Board:
 
         # Remove matched candies
         for r, c in matches:
-            if self.board[r][c] != "5" and self.board[r][c] != "V" and self.board[r][c] != "H":
+            if self.board[r][c] not in ("5", "V", "H", "T"):
                 self.board[r][c] = " "
 
         return len(matches)
@@ -338,7 +377,7 @@ class Board:
 
 
     def is_valid_move(self, r, c, direction):
-        if self.board[r][c] in ["V", "H", "5"]:
+        if self.board[r][c] in ["V", "H", "5", "T"]:
             return self.get_neighbor(r, c, direction) is not None
 
         neighbor = self.get_neighbor(r, c, direction)
@@ -370,10 +409,10 @@ class Board:
         moves = []
         for r in range(self.rows):
             for c in range(self.cols):
-                if self.board[r][c] in ["V", "H", "5"]:
+                if self.board[r][c] in ["V", "H", "5", "T"]:
                     moves.append((r,c,"x"))
                 for d in ["w", "a", "s", "d"]:
-                    if self.is_valid_move(r, c, d) or self.board[r][c] in ["V", "H", "5"]:
+                    if self.is_valid_move(r, c, d) or self.board[r][c] in ["V", "H", "5", "T"]:
                         moves.append((r,c,d))
         return moves
 

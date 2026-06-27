@@ -51,7 +51,7 @@ class Game:
 
         r2, c2 = self.board.get_neighbor(r, c, d)
         power_pops = 0 
-        if self.board.board[r][c] == "5" or self.board.board[r][c] == "V" or self.board.board[r][c] == "H":
+        if self.board.board[r][c] in ("5", "V", "H", "T"):
             power_pops += self.board.activate_powerup(r, c, r2, c2)
             self.board.drop()
             self.board.fill()
