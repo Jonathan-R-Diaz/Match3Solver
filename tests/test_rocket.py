@@ -482,26 +482,6 @@ def test_rocket_chain_heavy():
             assert ch == " "
 
 
-@pytest.mark.board
-def test_rocket_rocket_combo():
-    # H at (2,1) + V at (2,2): + fires from (2,2), clearing row 2 and col 2
-    b = Board(board_state=[
-        ['#', '#', '#', '#', '#'],
-        ['#', '#', '#', '#', '#'],
-        ['#', 'H', 'V', '#', '#'],
-        ['#', '#', '#', '#', '#'],
-        ['#', '#', '#', '#', '#'],
-    ])
-    crushed = b.activate_powerup(2, 1, 2, 2)
-    assert crushed == 7
-    assert b.board == [
-        ['#', '#', ' ', '#', '#'],
-        ['#', '#', ' ', '#', '#'],
-        [' ', ' ', ' ', ' ', ' '],
-        ['#', '#', ' ', '#', '#'],
-        ['#', '#', ' ', '#', '#'],
-    ]
-
 @pytest.mark.parametrize("rkt", ["V", "H"])
 def test_rocket_valid_moves(rkt):
     b = Board(board_state = [

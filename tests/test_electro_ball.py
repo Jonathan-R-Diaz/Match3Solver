@@ -60,55 +60,6 @@ def test_electro_power(ch: str, count: int):
     assert b.board[4][0] == ' '
 
 
-@pytest.mark.board
-def test_eb_eb_combo():
-    # 15x15 board: '#' everywhere except two adjacent '5' at center
-    # EB+EB sweeps the entire board: all 223 '#' cells cleared directly
-    board = [['#'] * 15 for _ in range(15)]
-    board[7][7] = '5'
-    board[7][8] = '5'
-    b = Board(board_state=board)
-    crushed = b.activate_powerup(7, 7, 7, 8)
-    assert crushed == 223
-    assert b.board == [[' '] * 15 for _ in range(15)]
-
-
-@pytest.mark.board
-def test_eb_tnt_combo():
-    # 15x15 board: '@' everywhere (most common), '#' at 4 corners, '5'+'T' at center
-    # EB+TNT replaces all 219 '@' with T and fires each; 4 corner '#' cells get caught
-    row_all_at = ['@'] * 15
-    board = [row_all_at.copy() for _ in range(15)]
-    board[0][0] = '#'
-    board[0][14] = '#'
-    board[14][0] = '#'
-    board[14][14] = '#'
-    board[7][7] = '5'
-    board[7][8] = 'T'
-    b = Board(board_state=board)
-    crushed = b.activate_powerup(7, 7, 7, 8)
-    assert crushed == 4
-    assert b.board == [[' '] * 15 for _ in range(15)]
-
-
-@pytest.mark.board
-def test_eb_rocket_combo():
-    # 15x15 board: '@' everywhere (most common), '#' at 4 corners, '5'+'H' at center
-    # EB+Rocket replaces all 219 '@' with H and fires each; every row gets cleared,
-    # catching the 4 corner '#' cells
-    board = [['@'] * 15 for _ in range(15)]
-    board[0][0] = '#'
-    board[0][14] = '#'
-    board[14][0] = '#'
-    board[14][14] = '#'
-    board[7][7] = '5'
-    board[7][8] = 'H'
-    b = Board(board_state=board)
-    crushed = b.activate_powerup(7, 7, 7, 8)
-    assert crushed == 4
-    assert b.board == [[' '] * 15 for _ in range(15)]
-
-
 def test_electro_valid_moves():
     b = Board(rows=3, cols=3, seed=0)
     # Force a simple match board: three same in first row

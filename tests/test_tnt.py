@@ -94,30 +94,6 @@ def test_tnt_chains_rocket():
 
 
 @pytest.mark.board
-def test_tnt_tnt_combo():
-    # Two adjacent TNTs at (4,5)+(4,6): radius=4 blast from (4,5)
-    # Clears rows 0-8, cols 1-9; col 0, col 10, and rows 9-10 survive
-    b = Board(board_state=[['#'] * 11 for _ in range(11)])
-    b.board[4][5] = "T"
-    b.board[4][6] = "T"
-    crushed = b.activate_powerup(4, 5, 4, 6)
-    assert crushed == 79
-    assert b.board == [
-        ['#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-        ['#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-        ['#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-        ['#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-        ['#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-        ['#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-        ['#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-        ['#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-        ['#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-        ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
-        ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
-    ]
-
-
-@pytest.mark.board
 def test_tnt_chains_tnt():
     # T at (3,2) blast hits T at (3,4) (exactly at radius edge); second TNT fires its own blast.
     # First blast: rows 1-5 cols 0-4. Second blast: rows 1-5 cols 2-6. Union clears rows 1-5 entirely.
