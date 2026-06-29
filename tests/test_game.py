@@ -27,7 +27,7 @@ def test_game_step_and_is_over():
     assert 'score' in info and 'moves_left' in info
 
 
-@pytest.mark.game
+@pytest.mark.gameplay
 def test_swap_create_detonate():
     board = [
         ["#", "#", "T", "#"],
