@@ -104,6 +104,20 @@ class Board:
                         crushed += 1
             return crushed
 
+        # EB + TNT → replace most common candy with TNTs, fire each
+        eb_tnt = (self.board[r1][c1] == "5" and self.board[r2][c2] == "T") or \
+                 (self.board[r2][c2] == "5" and self.board[r1][c1] == "T")
+        if eb_tnt and not (r1 == r2 and c1 == c2):
+            self.board[r1][c1] = " "
+            self.board[r2][c2] = " "
+            target = self.get_most_candy()
+            positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.board[r][c] == target]
+            for r, c in positions:
+                self.board[r][c] = "T"
+            for r, c in positions:
+                crushed += self.activate_powerup(r, c, r, c)
+            return crushed
+
         if self.board[r2][c2] in ("V", "H", "T"):
             r1, c1 = r2, c2
         if self.board[r1][c1] == "H":
