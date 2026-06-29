@@ -48,6 +48,47 @@ def test_tnt_tnt_combo():
 
 
 @pytest.mark.board
+def test_rocket_tnt_combo():
+    # H at (3,3) + T at (3,4): fires 3 rows (2-4) + 3 cols (3-5) centered on (3,4)
+    b = Board(board_state=[['#'] * 7 for _ in range(7)])
+    b.board[3][3] = 'H'
+    b.board[3][4] = 'T'
+    crushed = b.activate_powerup(3, 3, 3, 4)
+    assert crushed == 31
+    assert b.board == [
+        ['#', '#', '#', ' ', ' ', ' ', '#'],
+        ['#', '#', '#', ' ', ' ', ' ', '#'],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        ['#', '#', '#', ' ', ' ', ' ', '#'],
+        ['#', '#', '#', ' ', ' ', ' ', '#'],
+    ]
+
+
+@pytest.mark.board
+def test_rocket_tnt_chain():
+    # H rocket sweeps row 1, hits T at (1,3); TNT blasts rows 0-3 cols 1-5
+    # col 0 and col 6 outside TNT radius; row 4 outside TNT radius
+    b = Board(board_state=[
+        ['#', '#', '#', '#', '#', '#', '#'],
+        ['H', '#', '#', 'T', '#', '#', '#'],
+        ['#', '#', '#', '#', '#', '#', '#'],
+        ['#', '#', '#', '#', '#', '#', '#'],
+        ['#', '#', '#', '#', '#', '#', '#'],
+    ])
+    crushed = b.activate_powerup(1, 0, 1, 0)
+    assert crushed == 20
+    assert b.board == [
+        ['#', ' ', ' ', ' ', ' ', ' ', '#'],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        ['#', ' ', ' ', ' ', ' ', ' ', '#'],
+        ['#', ' ', ' ', ' ', ' ', ' ', '#'],
+        ['#', '#', '#', '#', '#', '#', '#'],
+    ]
+
+
+@pytest.mark.board
 def test_eb_eb_combo():
     # 15x15 board: '#' everywhere except two adjacent '5' at center
     # EB+EB sweeps the entire board: all 223 '#' cells cleared directly

@@ -91,6 +91,20 @@ class Board:
             crushed += self.clear_col(c2)
             return crushed
 
+        # Rocket + TNT combo: fire 3 rows + 3 cols centered on the target cell
+        rkt_tnt = (self.board[r1][c1] in ("V", "H") and self.board[r2][c2] == "T") or \
+                  (self.board[r2][c2] in ("V", "H") and self.board[r1][c1] == "T")
+        if rkt_tnt and not (r1 == r2 and c1 == c2):
+            self.board[r1][c1] = " "
+            self.board[r2][c2] = " "
+            for r in range(r2 - 1, r2 + 2):
+                if self.in_bounds(r, 0):
+                    crushed += self.clear_row(r)
+            for c in range(c2 - 1, c2 + 2):
+                if self.in_bounds(0, c):
+                    crushed += self.clear_col(c)
+            return crushed
+
         # EB + EB → clear entire board
         if self.board[r1][c1] == "5" and self.board[r2][c2] == "5" and not (r1 == r2 and c1 == c2):
             self.board[r1][c1] = " "

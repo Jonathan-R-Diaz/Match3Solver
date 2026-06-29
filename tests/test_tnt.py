@@ -114,28 +114,6 @@ def test_tnt_chains_tnt():
 
 
 @pytest.mark.board
-def test_rocket_chains_tnt():
-    # H rocket sweeps row 1, hits T at (1,3); TNT blasts rows 0-3 cols 1-5
-    # col 0 and col 6 outside TNT radius; row 4 outside TNT radius
-    b = Board(board_state=[
-        ['#', '#', '#', '#', '#', '#', '#'],
-        ['H', '#', '#', 'T', '#', '#', '#'],
-        ['#', '#', '#', '#', '#', '#', '#'],
-        ['#', '#', '#', '#', '#', '#', '#'],
-        ['#', '#', '#', '#', '#', '#', '#'],
-    ])
-    crushed = b.activate_powerup(1, 0, 1, 0)
-    assert crushed == 20
-    assert b.board == [
-        ['#', ' ', ' ', ' ', ' ', ' ', '#'],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['#', ' ', ' ', ' ', ' ', ' ', '#'],
-        ['#', ' ', ' ', ' ', ' ', ' ', '#'],
-        ['#', '#', '#', '#', '#', '#', '#'],
-    ]
-
-
-@pytest.mark.board
 def test_tnt_valid_moves():
     b = Board(board_state=[
         [' ', '@', ' '],
