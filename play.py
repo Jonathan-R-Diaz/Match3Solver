@@ -1,14 +1,14 @@
 from argparse import ArgumentParser
 from candy_crush.game import Game
+from typing import List
 
 
-def main():
+def main(board: List[List[str]] = None):
     parser = ArgumentParser()
     parser.add_argument('--animate', action='store_true', help='Enable terminal animation for crushes')
     args = parser.parse_args()
 
-    game = Game()
-    game.reset()
+    game = Game(board_state=board)
 
     while True:
         game.render()
