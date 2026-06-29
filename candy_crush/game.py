@@ -1,15 +1,26 @@
 from candy_crush.board import Board
+from typing import List
 
 
 class Game:
-    def __init__(self, rows=8, cols=8, max_moves=30, seed=0):
-
-        self.rows = rows
-        self.cols = cols
+    def __init__(self, rows=8, cols=8, max_moves=30, seed=0, board_state: List[List[str]] = None, debug=False):
         self.num_candies = None
         self.max_moves = max_moves
+        self.moves_left = max_moves
         self.seed = seed
-        self.reset()
+        self.score = 0
+        self.debug = debug
+
+        if board_state:
+            print("Custom board loaded")
+            self.board = Board(board_state=board_state, debug=debug)
+            self.rows = len(board_state)
+            self.cols = len(board_state[0])
+            self.board.print_board()
+        else:
+            self.rows = rows
+            self.cols = cols
+            self.reset()
 
         print("=== Terminal Candy Crush ===")
         print("Match 3 or more candies.")
@@ -22,6 +33,7 @@ class Game:
             rows=self.rows,
             cols=self.cols,
             seed=self.seed,
+            debug=self.debug
         )
         self.score = 0
         self.moves_left = self.max_moves
@@ -50,13 +62,23 @@ class Game:
             
 
         r2, c2 = self.board.get_neighbor(r, c, d)
-        power_pops = 0 
+        power_pops = 0
+        swapped_powerup_pos = None
+        pre_crush_powerups = None
         if self.board.board[r][c] in ("5", "V", "H", "T"):
             power_pops += self.board.activate_powerup(r, c, r2, c2)
             self.board.drop()
             self.board.fill()
         else:
             self.board.swap(r, c, r2, c2)
+            if self.board.board[r][c] in ("5", "V", "H", "T"):
+                swapped_powerup_pos = (r, c)
+                pre_crush_powerups = {
+                    (rr, cc)
+                    for rr in range(self.rows)
+                    for cc in range(self.cols)
+                    if self.board.board[rr][cc] in ("5", "V", "H", "T")
+                }
 
         self.board.last_move = ((r, c), (r2, c2))
 
@@ -70,6 +92,24 @@ class Game:
                 pass
         else:
             crushed = self.board.crush()
+
+        if swapped_powerup_pos:
+            sr, sc = swapped_powerup_pos
+            if self.board.board[sr][sc] in ("5", "V", "H", "T"):
+                new_powerups = {
+                    (rr, cc): self.board.board[rr][cc]
+                    for rr in range(self.rows)
+                    for cc in range(self.cols)
+                    if self.board.board[rr][cc] in ("5", "V", "H", "T")
+                    and (rr, cc) not in pre_crush_powerups
+                    and not (rr == sr and cc == sc)
+                }
+                power_pops += self.board.activate_powerup(sr, sc, sr, sc)
+                for (pr, pc), ptype in new_powerups.items():
+                    if self.board.board[pr][pc] == " ":
+                        self.board.board[pr][pc] = ptype
+                self.board.drop()
+                self.board.fill()
 
         # Score is number of candies crushed (tests rely on reward magnitude)
         self.score += crushed + power_pops
