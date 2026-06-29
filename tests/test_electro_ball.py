@@ -60,6 +60,23 @@ def test_electro_power(ch: str, count: int):
     assert b.board[4][0] == ' '
 
 
+@pytest.mark.board
+def test_eb_eb_combo():
+    # Two EBs adjacent on a 3x3 board; rest are '#'
+    b = Board(board_state=[
+        ['#', '#', '#'],
+        ['#', '5', '5'],
+        ['#', '#', '#'],
+    ])
+    crushed = b.activate_powerup(1, 1, 1, 2)
+    assert crushed == 7
+    assert b.board == [
+        [' ', ' ', ' '],
+        [' ', ' ', ' '],
+        [' ', ' ', ' '],
+    ]
+
+
 def test_electro_valid_moves():
     b = Board(rows=3, cols=3, seed=0)
     # Force a simple match board: three same in first row

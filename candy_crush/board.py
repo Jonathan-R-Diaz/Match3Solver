@@ -91,6 +91,19 @@ class Board:
             crushed += self.clear_col(c2)
             return crushed
 
+        # EB + EB → clear entire board
+        if self.board[r1][c1] == "5" and self.board[r2][c2] == "5" and not (r1 == r2 and c1 == c2):
+            self.board[r1][c1] = " "
+            self.board[r2][c2] = " "
+            for r in range(self.rows):
+                for c in range(self.cols):
+                    if self.board[r][c] in ("V", "H", "5", "T"):
+                        crushed += self.activate_powerup(r, c, r, c)
+                    elif self.board[r][c] != " ":
+                        self.board[r][c] = " "
+                        crushed += 1
+            return crushed
+
         if self.board[r2][c2] in ("V", "H", "T"):
             r1, c1 = r2, c2
         if self.board[r1][c1] == "H":
