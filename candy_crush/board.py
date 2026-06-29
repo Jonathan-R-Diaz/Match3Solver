@@ -73,7 +73,10 @@ class Board:
         return crush_count
 
 
-    def activate_powerup(self, r1: int, c1: int, r2: int, c2: int):
+    def activate_powerup(self, r1: int, c1: int, r2: int, c2: int, protected=None):
+        print("[Debug] Activating powerup", r1, c1, r2, c2)
+        if protected is None:
+            protected = set()
         crushed = 0
 
         # TNT + TNT combo: double-radius blast
@@ -151,13 +154,13 @@ class Board:
             r1, c1 = r2, c2
         if self.board[r1][c1] == "H":
             self.board[r1][c1] = " "
-            crushed += self.clear_row(r1)
+            crushed += self.clear_row(r1, protected=protected)
         elif self.board[r1][c1] == "V":
             self.board[r1][c1] = " "
-            crushed += self.clear_col(c1)
+            crushed += self.clear_col(c1, protected=protected)
         elif self.board[r1][c1] == "T":
             self.board[r1][c1] = " "
-            crushed += self.clear_area(r1, c1)
+            crushed += self.clear_area(r1, c1, protected=protected)
         elif r1 == r2 and c1 == c2 and self.board[r1][c1] == "5":
             crushed = self.clear_candies(self.get_most_candy())
         elif self.board[r1][c1] == "5" or self.board[r2][c2] == "5":
@@ -195,12 +198,16 @@ class Board:
         return crushed
 
 
-    def clear_area(self, r, c, radius=2):
+    def clear_area(self, r, c, radius=2, protected=None):
+        if protected is None:
+            protected = set()
         crushed = 0
         for dr in range(-radius, radius + 1):
             for dc in range(-radius, radius + 1):
                 nr, nc = r + dr, c + dc
                 if not self.in_bounds(nr, nc):
+                    continue
+                if (nr, nc) in protected:
                     continue
                 if self.board[nr][nc] in ['V', 'H', '5', 'T']:
                     crushed += self.activate_powerup(nr, nc, nr, nc)
@@ -210,21 +217,29 @@ class Board:
         return crushed
 
 
-    def clear_col(self, c):
+    def clear_col(self, c, protected=None):
+        if protected is None:
+            protected = set()
         crushed = 0
         for i in range(self.rows):
+            if (i, c) in protected:
+                continue
             if self.board[i][c] in ('5', 'V', 'H', 'T'):
                 crushed += self.activate_powerup(i, c, i, c)
             if self.board[i][c] != " ":
                 self.board[i][c] = " "
                 crushed += 1
-        
+
         return crushed
 
 
-    def clear_row(self, r):
+    def clear_row(self, r, protected=None):
+        if protected is None:
+            protected = set()
         crushed = 0
         for j in range(self.cols):
+            if (r, j) in protected:
+                continue
             if self.board[r][j] in ('5', 'V', 'H', 'T'):
                 crushed += self.activate_powerup(r, j, r, j)
             if self.board[r][j] != " ":

@@ -97,17 +97,14 @@ class Game:
             sr, sc = swapped_powerup_pos
             if self.board.board[sr][sc] in ("5", "V", "H", "T"):
                 new_powerups = {
-                    (rr, cc): self.board.board[rr][cc]
+                    (rr, cc)
                     for rr in range(self.rows)
                     for cc in range(self.cols)
                     if self.board.board[rr][cc] in ("5", "V", "H", "T")
                     and (rr, cc) not in pre_crush_powerups
                     and not (rr == sr and cc == sc)
                 }
-                power_pops += self.board.activate_powerup(sr, sc, sr, sc)
-                for (pr, pc), ptype in new_powerups.items():
-                    if self.board.board[pr][pc] == " ":
-                        self.board.board[pr][pc] = ptype
+                power_pops += self.board.activate_powerup(sr, sc, sr, sc, protected=new_powerups)
                 self.board.drop()
                 self.board.fill()
 
