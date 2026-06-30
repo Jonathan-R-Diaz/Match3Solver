@@ -8,7 +8,7 @@ from typing import List, Optional
 # ANSI color codes mapped to candy symbols (fallback to white)
 _COLOR_MAP = {
     '$': '\u001b[33m',
-    '#': '\u001b[31m',
+    '%': '\u001b[31m',
     '&': '\u001b[35m',
     '@': '\u001b[32m',
     '*': '\u001b[36m',
