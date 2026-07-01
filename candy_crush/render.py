@@ -5,13 +5,17 @@ ASCII representation. Uses ANSI colors when available.
 """
 from typing import List, Optional
 
+# 31m : Red
+# 32m : Green
+# 33m : Yellow
+# 34m : Blue
+
 # ANSI color codes mapped to candy symbols (fallback to white)
 _COLOR_MAP = {
-    '$': '\u001b[33m',
-    '%': '\u001b[31m',
-    '&': '\u001b[35m',
-    '@': '\u001b[32m',
-    '*': '\u001b[36m',
+    '$': '\u001b[31m',
+    '%': '\u001b[32m',
+    '&': '\u001b[33m',
+    '@': '\u001b[34m',
 }
 _RESET = '\u001b[0m'
 
