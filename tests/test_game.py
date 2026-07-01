@@ -188,5 +188,4 @@ def test_swap_create_detonate():
 def test_drop_physics(start, end):
     game = Game(board_state=start)
     game.board.fill(fill_with="$")
-    game.board.print_board()
     assert game.board.board == end
