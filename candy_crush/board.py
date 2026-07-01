@@ -23,6 +23,7 @@ class Board:
         random.seed(seed)
         self.last_move = None
         self.debug = debug
+        self._drop_toggle = False
         if board_state:
             self.board = board_state
             self.rows = len(self.board)
@@ -389,30 +390,62 @@ class Board:
             
 
     def drop(self):
-        n = len(self.board)
-        m = len(self.board[0])
-
-        for i in range(n - 1, -1, -1):
-            for j in range(m - 1, -1, -1):
-                if self.board[i][j] != " ":
-                    continue
-                
-                k = i - 1
-                while k >= 0 and self.board[k][j] == " ":
-                    k -= 1    
-                offset = i - k
-                for k in range(i, -1, -1):
-                    if k - offset >= 0:
-                        self.board[k][j] = self.board[k - offset][j]
-                    else:
-                        self.board[k][j] = " "
+        changed = True
+        while changed:
+            changed = False
+            for r in range(self.rows - 2, -1, -1):
+                for c in range(self.cols):
+                    cell = self.board[r][c]
+                    if cell in (' ', '#'):
+                        continue
+                    if self.board[r + 1][c] == ' ':
+                        self.board[r + 1][c] = cell
+                        self.board[r][c] = ' '
+                        changed = True
 
 
-    def fill(self):
-        for r in range(self.rows):
+    def fill(self, fill_with=None):
+        center = self.cols // 2
+        while True:
+            falling = set()
             for c in range(self.cols):
-                if self.board[r][c] == " ":
-                    self.board[r][c] = random.choice(CANDIES)
+                if self.board[0][c] == ' ':
+                    self.board[0][c] = fill_with if fill_with is not None else random.choice(CANDIES)
+                    falling.add((0, c))
+            if not falling:
+                break
+            while falling:
+                new_falling = set()
+                for r in range(self.rows - 2, -1, -1):
+                    for c in range(self.cols):
+                        if (r, c) not in falling:
+                            continue
+                        cell = self.board[r][c]
+                        if self.board[r + 1][c] == ' ':
+                            self.board[r + 1][c] = cell
+                            self.board[r][c] = ' '
+                            new_falling.add((r + 1, c))
+                            continue
+                        below_left = self.in_bounds(r + 1, c - 1) and self.board[r + 1][c - 1] == ' '
+                        below_right = self.in_bounds(r + 1, c + 1) and self.board[r + 1][c + 1] == ' '
+                        if below_left and below_right:
+                            if c < center:
+                                nc = c - 1
+                            elif c > center:
+                                nc = c + 1
+                            else:
+                                nc = c - 1 if self._drop_toggle else c + 1
+                                self._drop_toggle = not self._drop_toggle
+                        elif below_left:
+                            nc = c - 1
+                        elif below_right:
+                            nc = c + 1
+                        else:
+                            continue
+                        self.board[r + 1][nc] = cell
+                        self.board[r][c] = ' '
+                        new_falling.add((r + 1, nc))
+                falling = new_falling
 
 
     def crush(self, return_frames: bool = False, refill: bool = True):
