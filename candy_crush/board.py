@@ -212,7 +212,7 @@ class Board:
                     continue
                 if self.board[nr][nc] in ['V', 'H', '5', 'T']:
                     crushed += self.activate_powerup(nr, nc, nr, nc)
-                elif self.board[nr][nc] != ' ':
+                elif self.board[nr][nc] not in (' ', '#'):
                     self.board[nr][nc] = ' '
                     crushed += 1
         return crushed
@@ -227,7 +227,7 @@ class Board:
                 continue
             if self.board[i][c] in ('5', 'V', 'H', 'T'):
                 crushed += self.activate_powerup(i, c, i, c)
-            if self.board[i][c] != " ":
+            if self.board[i][c] not in (' ', '#'):
                 self.board[i][c] = " "
                 crushed += 1
 
@@ -243,10 +243,10 @@ class Board:
                 continue
             if self.board[r][j] in ('5', 'V', 'H', 'T'):
                 crushed += self.activate_powerup(r, j, r, j)
-            if self.board[r][j] != " ":
+            if self.board[r][j] not in (' ', '#'):
                 self.board[r][j] = " "
                 crushed += 1
-        
+
         return crushed
 
 
@@ -305,7 +305,7 @@ class Board:
         for r in range(self.rows):
             count = 1
             for c in range(self.cols - 1):
-                if self.board[r][c] == self.board[r][c + 1] and self.board[r][c] != " ":
+                if self.board[r][c] == self.board[r][c + 1] and self.board[r][c] not in (" ", "#", "B"):
                     count += 1
 
                 if self.board[r][c] != self.board[r][c + 1] or c == self.cols - 2:
@@ -340,7 +340,7 @@ class Board:
         for c in range(self.cols):
             count = 1
             for r in range(self.rows - 1):
-                if self.board[r][c] == self.board[r + 1][c] and self.board[r][c] != " ":
+                if self.board[r][c] == self.board[r + 1][c] and self.board[r][c] not in (" ", "#", "B"):
                     count += 1
 
                 if self.board[r][c] != self.board[r + 1][c] or r == self.rows - 2:
@@ -386,7 +386,17 @@ class Board:
             if self.board[r][c] not in ("5", "V", "H", "T"):
                 self.board[r][c] = " "
 
-        return len(matches)
+        # Each matched cell hits adjacent boxes
+        box_pops = set()
+        for r, c in matches:
+            for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                nr, nc = r + dr, c + dc
+                if self.in_bounds(nr, nc) and self.board[nr][nc] == "B":
+                    box_pops.add((nr, nc))
+        for r, c in box_pops:
+            self.board[r][c] = " "
+
+        return len(matches) + len(box_pops)
             
 
     def drop(self):
@@ -396,7 +406,7 @@ class Board:
             for r in range(self.rows - 2, -1, -1):
                 for c in range(self.cols):
                     cell = self.board[r][c]
-                    if cell in (' ', '#'):
+                    if cell in (' ', '#', 'B'):
                         continue
                     if self.board[r + 1][c] == ' ':
                         self.board[r + 1][c] = cell
@@ -485,6 +495,8 @@ class Board:
 
 
     def is_valid_move(self, r, c, direction):
+        if self.board[r][c] in (' ', '#', 'B'):
+            return False
         if self.board[r][c] in ["V", "H", "5", "T"]:
             return self.get_neighbor(r, c, direction) is not None
 
