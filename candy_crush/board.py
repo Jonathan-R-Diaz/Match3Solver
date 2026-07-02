@@ -14,7 +14,7 @@ import random
 from collections import defaultdict
 from typing import List
 
-CANDIES = ["$", "%", "&", "@"]
+CANDIES = ["r", "b", "g", "y"]
 
 class Board:
     
