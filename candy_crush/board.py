@@ -14,7 +14,9 @@ import random
 from collections import defaultdict
 from typing import List
 
-CANDIES = ["r", "b", "g", "y"]
+CANDIES  = ["r", "b", "g", "y"]
+POWERUPS = frozenset({"5", "V", "H", "T", "S"})
+ROCKETS  = frozenset({"V", "H"})
 
 class Board:
     
@@ -62,7 +64,7 @@ class Board:
             return None
 
         crush_count = 0
-        if self.board[r][c] in ("5", "V", "H", "T"):
+        if self.board[r][c] in POWERUPS:
             crush_count += self.activate_powerup(r, c, r2, c2)
             self.drop()
         else:
@@ -88,7 +90,7 @@ class Board:
             return crushed
 
         # Rocket + Rocket combo: fire a + (row + col) from the target cell
-        if self.board[r1][c1] in ("V", "H") and self.board[r2][c2] in ("V", "H") and not (r1 == r2 and c1 == c2):
+        if self.board[r1][c1] in ROCKETS and self.board[r2][c2] in ROCKETS and not (r1 == r2 and c1 == c2):
             self.board[r1][c1] = " "
             self.board[r2][c2] = " "
             crushed += self.clear_row(r2)
@@ -96,8 +98,8 @@ class Board:
             return crushed
 
         # Rocket + TNT combo: fire 3 rows + 3 cols centered on the target cell
-        rkt_tnt = (self.board[r1][c1] in ("V", "H") and self.board[r2][c2] == "T") or \
-                  (self.board[r2][c2] in ("V", "H") and self.board[r1][c1] == "T")
+        rkt_tnt = (self.board[r1][c1] in ROCKETS and self.board[r2][c2] == "T") or \
+                  (self.board[r2][c2] in ROCKETS and self.board[r1][c1] == "T")
         if rkt_tnt and not (r1 == r2 and c1 == c2):
             self.board[r1][c1] = " "
             self.board[r2][c2] = " "
@@ -115,7 +117,7 @@ class Board:
             self.board[r2][c2] = " "
             for r in range(self.rows):
                 for c in range(self.cols):
-                    if self.board[r][c] in ("V", "H", "5", "T"):
+                    if self.board[r][c] in POWERUPS:
                         crushed += self.activate_powerup(r, c, r, c)
                     elif self.board[r][c] != " ":
                         self.board[r][c] = " "
@@ -123,10 +125,10 @@ class Board:
             return crushed
 
         # EB + Rocket → replace most common candy with that rocket type, fire each
-        eb_rocket = (self.board[r1][c1] == "5" and self.board[r2][c2] in ("V", "H")) or \
-                    (self.board[r2][c2] == "5" and self.board[r1][c1] in ("V", "H"))
+        eb_rocket = (self.board[r1][c1] == "5" and self.board[r2][c2] in ROCKETS) or \
+                    (self.board[r2][c2] == "5" and self.board[r1][c1] in ROCKETS)
         if eb_rocket and not (r1 == r2 and c1 == c2):
-            rkt = self.board[r1][c1] if self.board[r1][c1] in ("V", "H") else self.board[r2][c2]
+            rkt = self.board[r1][c1] if self.board[r1][c1] in ROCKETS else self.board[r2][c2]
             self.board[r1][c1] = " "
             self.board[r2][c2] = " "
             target = self.get_most_candy()
@@ -151,7 +153,7 @@ class Board:
                 crushed += self.activate_powerup(r, c, r, c)
             return crushed
 
-        if self.board[r2][c2] in ("V", "H", "T"):
+        if self.board[r2][c2] in ("V", "H", "T", "S"):
             r1, c1 = r2, c2
         if self.board[r1][c1] == "H":
             self.board[r1][c1] = " "
@@ -162,12 +164,36 @@ class Board:
         elif self.board[r1][c1] == "T":
             self.board[r1][c1] = " "
             crushed += self.clear_area(r1, c1, protected=protected)
+        elif self.board[r1][c1] == "S":
+            self.board[r1][c1] = " "
+            crushed += self.fire_spinner(r1, c1)
         elif r1 == r2 and c1 == c2 and self.board[r1][c1] == "5":
             crushed = self.clear_candies(self.get_most_candy())
         elif self.board[r1][c1] == "5" or self.board[r2][c2] == "5":
             crushed = self.clear_candies(self.board[r2][c2])
 
         self.board[r1][c1] = " "
+        return crushed
+
+
+    def fire_spinner(self, r: int, c: int) -> int:
+        """Pop the 4 cardinal neighbours, then clear one random obstacle ('B')."""
+        crushed = 0
+        for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            nr, nc = r + dr, c + dc
+            if not self.in_bounds(nr, nc):
+                continue
+            if self.board[nr][nc] in POWERUPS:
+                crushed += self.activate_powerup(nr, nc, nr, nc)
+            elif self.board[nr][nc] not in (' ', '#'):
+                self.board[nr][nc] = ' '
+                crushed += 1
+        obstacles = [(rr, cc) for rr in range(self.rows) for cc in range(self.cols)
+                     if self.board[rr][cc] == 'B']
+        if obstacles:
+            rr, cc = random.choice(obstacles)
+            self.board[rr][cc] = ' '
+            crushed += 1
         return crushed
 
 
@@ -225,7 +251,7 @@ class Board:
         for i in range(self.rows):
             if (i, c) in protected:
                 continue
-            if self.board[i][c] in ('5', 'V', 'H', 'T'):
+            if self.board[i][c] in POWERUPS:
                 crushed += self.activate_powerup(i, c, i, c)
             if self.board[i][c] not in (' ', '#'):
                 self.board[i][c] = " "
@@ -241,7 +267,7 @@ class Board:
         for j in range(self.cols):
             if (r, j) in protected:
                 continue
-            if self.board[r][j] in ('5', 'V', 'H', 'T'):
+            if self.board[r][j] in POWERUPS:
                 crushed += self.activate_powerup(r, j, r, j)
             if self.board[r][j] not in (' ', '#'):
                 self.board[r][j] = " "
@@ -383,7 +409,7 @@ class Board:
 
         # Remove matched candies
         for r, c in matches:
-            if self.board[r][c] not in ("5", "V", "H", "T"):
+            if self.board[r][c] not in POWERUPS:
                 self.board[r][c] = " "
 
         # Each matched cell hits adjacent boxes
@@ -497,7 +523,7 @@ class Board:
     def is_valid_move(self, r, c, direction):
         if self.board[r][c] in (' ', '#', 'B'):
             return False
-        if self.board[r][c] in ["V", "H", "5", "T"]:
+        if self.board[r][c] in POWERUPS:
             return self.get_neighbor(r, c, direction) is not None
 
         neighbor = self.get_neighbor(r, c, direction)
@@ -529,7 +555,7 @@ class Board:
         moves = []
         for r in range(self.rows):
             for c in range(self.cols):
-                if self.board[r][c] in ["V", "H", "5", "T"]:
+                if self.board[r][c] in POWERUPS:
                     moves.append((r,c,"x"))
                 for d in ["w", "a", "s", "d"]:
                     if self.is_valid_move(r, c, d):

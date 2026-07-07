@@ -1,4 +1,4 @@
-from candy_crush.board import Board
+from candy_crush.board import Board, POWERUPS
 from typing import List
 
 
@@ -65,19 +65,19 @@ class Game:
         power_pops = 0
         swapped_powerup_pos = None
         pre_crush_powerups = None
-        if self.board.board[r][c] in ("5", "V", "H", "T"):
+        if self.board.board[r][c] in POWERUPS:
             power_pops += self.board.activate_powerup(r, c, r2, c2)
             self.board.drop()
             self.board.fill()
         else:
             self.board.swap(r, c, r2, c2)
-            if self.board.board[r][c] in ("5", "V", "H", "T"):
+            if self.board.board[r][c] in POWERUPS:
                 swapped_powerup_pos = (r, c)
                 pre_crush_powerups = {
                     (rr, cc)
                     for rr in range(self.rows)
                     for cc in range(self.cols)
-                    if self.board.board[rr][cc] in ("5", "V", "H", "T")
+                    if self.board.board[rr][cc] in POWERUPS
                 }
 
         self.board.last_move = ((r, c), (r2, c2))
@@ -95,12 +95,12 @@ class Game:
 
         if swapped_powerup_pos:
             sr, sc = swapped_powerup_pos
-            if self.board.board[sr][sc] in ("5", "V", "H", "T"):
+            if self.board.board[sr][sc] in POWERUPS:
                 new_powerups = {
                     (rr, cc)
                     for rr in range(self.rows)
                     for cc in range(self.cols)
-                    if self.board.board[rr][cc] in ("5", "V", "H", "T")
+                    if self.board.board[rr][cc] in POWERUPS
                     and (rr, cc) not in pre_crush_powerups
                     and not (rr == sr and cc == sc)
                 }
