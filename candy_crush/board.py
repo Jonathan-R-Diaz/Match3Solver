@@ -153,6 +153,21 @@ class Board:
                 crushed += self.activate_powerup(r, c, r, c)
             return crushed
 
+        # EB + Spinner → replace most common candy with Spinners, fire each
+        eb_spinner = (self.board[r1][c1] == "5" and self.board[r2][c2] == "S") or \
+                     (self.board[r2][c2] == "5" and self.board[r1][c1] == "S")
+        if eb_spinner and not (r1 == r2 and c1 == c2):
+            self.board[r1][c1] = " "
+            self.board[r2][c2] = " "
+            target = self.get_most_candy()
+            positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.board[r][c] == target]
+            for r, c in positions:
+                self.board[r][c] = "S"
+            for r, c in positions:
+                self.board[r][c] = " "
+                crushed += self.fire_spinner(r, c, chain=False)
+            return crushed
+
         if self.board[r2][c2] in ("V", "H", "T", "S"):
             r1, c1 = r2, c2
         if self.board[r1][c1] == "H":
@@ -176,15 +191,21 @@ class Board:
         return crushed
 
 
-    def fire_spinner(self, r: int, c: int) -> int:
-        """Pop the 4 cardinal neighbours, then clear one random obstacle ('B')."""
+    def fire_spinner(self, r: int, c: int, chain: bool = True) -> int:
+        """Pop the 4 cardinal neighbours, then clear one random obstacle ('B').
+
+        chain=False: powerup neighbors are cleared without triggering their effect
+        (used by EB+Spinner so the mass-spawned spinners don't cascade).
+        """
         crushed = 0
         for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             nr, nc = r + dr, c + dc
             if not self.in_bounds(nr, nc):
                 continue
             if self.board[nr][nc] in POWERUPS:
-                crushed += self.activate_powerup(nr, nc, nr, nc)
+                if chain:
+                    crushed += self.activate_powerup(nr, nc, nr, nc)
+                # chain=False: skip powerups entirely — they stay on the board
             elif self.board[nr][nc] not in (' ', '#'):
                 self.board[nr][nc] = ' '
                 crushed += 1
