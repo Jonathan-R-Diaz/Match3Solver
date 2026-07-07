@@ -312,18 +312,18 @@ def test_spinner_spinner_fires_first_spinner():
 
 
 @pytest.mark.board
-def test_spinner_spinner_spawns_extra_spinner_that_fires():
-    # Board has plenty of candies. Combo fires at (0,0), then a second spinner
-    # fires somewhere in rows 1-2. Total crushed must exceed a single spinner's max.
+def test_spinner_spinner_extra_pops_one_obstacle():
+    # Both spinners surrounded by empty → 0 cardinals cleared.
+    # Each spinner does 1 random box pop (2 total), plus the extra pop = 3 total.
     b = Board(board_state=[
-        ['S', 'r', 'S'],
-        ['g', 'b', 'g'],
-        ['r', 'r', 'r'],
+        [' ', 'S', ' '],
+        [' ', 'S', ' '],
+        [' ', ' ', ' '],
+        ['B', 'B', 'B'],
     ])
-    crushed = b.activate_powerup(0, 0, 0, 2)
-    # A lone spinner at a corner clears at most 2 neighbors.
-    # Two firings on a 3×3 board → should crush more than 2.
-    assert crushed > 2
+    before = box_count(b)
+    b.activate_powerup(0, 1, 1, 1)
+    assert box_count(b) == before - 3   # 2 spinner pops + 1 extra = all 3 gone
 
 
 @pytest.mark.board

@@ -174,12 +174,12 @@ class Board:
             self.board[r2][c2] = " "
             crushed += self.fire_spinner(r1, c1)
             crushed += self.fire_spinner(r2, c2)
-            spawn_positions = [(r, c) for r in range(self.rows) for c in range(self.cols)
-                               if self.board[r][c] not in ('#', 'B')]
-            if spawn_positions:
-                er, ec = random.choice(spawn_positions)
+            obstacles = [(r, c) for r in range(self.rows) for c in range(self.cols)
+                         if self.board[r][c] == 'B']
+            if obstacles:
+                er, ec = random.choice(obstacles)
                 self.board[er][ec] = " "
-                crushed += self.fire_spinner(er, ec)
+                crushed += 1
             return crushed
 
         if self.board[r2][c2] in ("V", "H", "T", "S"):
