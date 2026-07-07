@@ -168,6 +168,40 @@ class Board:
                 crushed += self.fire_spinner(r, c, chain=False)
             return crushed
 
+        # Spinner + TNT → fire TNT from position that maximizes obstacles cleared
+        spinner_tnt = (self.board[r1][c1] == "S" and self.board[r2][c2] == "T") or \
+                      (self.board[r2][c2] == "S" and self.board[r1][c1] == "T")
+        if spinner_tnt and not (r1 == r2 and c1 == c2):
+            self.board[r1][c1] = " "
+            self.board[r2][c2] = " "
+            best_r, best_c = max(
+                ((r, c) for r in range(self.rows) for c in range(self.cols)),
+                key=lambda rc: sum(
+                    1 for dr in range(-2, 3) for dc in range(-2, 3)
+                    if self.in_bounds(rc[0]+dr, rc[1]+dc)
+                    and self.board[rc[0]+dr][rc[1]+dc] == 'B'
+                )
+            )
+            crushed += self.clear_area(best_r, best_c)
+            return crushed
+
+        # Spinner + Rocket → fire rocket along row/col with most obstacles
+        spinner_rocket = (self.board[r1][c1] == "S" and self.board[r2][c2] in ROCKETS) or \
+                         (self.board[r2][c2] == "S" and self.board[r1][c1] in ROCKETS)
+        if spinner_rocket and not (r1 == r2 and c1 == c2):
+            rkt = self.board[r1][c1] if self.board[r1][c1] in ROCKETS else self.board[r2][c2]
+            self.board[r1][c1] = " "
+            self.board[r2][c2] = " "
+            if rkt == 'H':
+                best_r = max(range(self.rows),
+                             key=lambda r: sum(1 for c in range(self.cols) if self.board[r][c] == 'B'))
+                crushed += self.clear_row(best_r)
+            else:
+                best_c = max(range(self.cols),
+                             key=lambda c: sum(1 for r in range(self.rows) if self.board[r][c] == 'B'))
+                crushed += self.clear_col(best_c)
+            return crushed
+
         # Spinner + Spinner → fire both spinners, then spawn + fire one extra anywhere
         if self.board[r1][c1] == "S" and self.board[r2][c2] == "S" and not (r1 == r2 and c1 == c2):
             self.board[r1][c1] = " "

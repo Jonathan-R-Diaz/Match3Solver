@@ -280,3 +280,108 @@ def test_spinner_spinner_combo():
     ])
     b.activate_powerup(0, 1, 1, 1)
     assert sum(cell == 'B' for row in b.board for cell in row) == 0
+
+
+# ── Spinner + TNT combo ───────────────────────────────────────────────────────
+
+@pytest.mark.board
+def test_spinner_tnt_targets_row_with_most_obstacles():
+    # Row 3 has 3 boxes, row 0 has 1. TNT should move to best position over row 3.
+    b = Board(board_state=[
+        ['r', 'B', 'r', 'r', 'r'],
+        ['r', 'S', 'r', 'r', 'r'],
+        ['r', 'T', 'r', 'r', 'r'],
+        ['B', 'B', 'B', 'r', 'r'],
+        ['r', 'r', 'r', 'r', 'r'],
+    ])
+    b.activate_powerup(1, 1, 2, 1)
+    # All 4 boxes should be gone (TNT radius-2 at row 3 covers the cluster)
+    assert sum(cell == 'B' for row in b.board for cell in row) == 0
+
+
+@pytest.mark.board
+def test_spinner_tnt_order_does_not_matter():
+    b1 = Board(board_state=[
+        ['r', 'r', 'r'],
+        ['S', 'r', 'T'],
+        ['B', 'B', 'B'],
+    ])
+    b2 = Board(board_state=[
+        ['r', 'r', 'r'],
+        ['S', 'r', 'T'],
+        ['B', 'B', 'B'],
+    ])
+    c1 = b1.activate_powerup(1, 0, 1, 2)   # Spinner first
+    c2 = b2.activate_powerup(1, 2, 1, 0)   # TNT first
+    assert c1 == c2
+
+
+@pytest.mark.board
+def test_spinner_tnt_chains_powerups_in_blast():
+    # Rocket H inside the optimal TNT blast area should chain.
+    b = Board(board_state=[
+        ['r', 'r', 'r', 'r', 'r'],
+        ['r', 'S', 'r', 'T', 'r'],
+        ['B', 'H', 'B', 'r', 'r'],   # H in blast zone — should fire
+        ['B', 'B', 'B', 'r', 'r'],
+        ['r', 'r', 'r', 'r', 'r'],
+    ])
+    b.activate_powerup(1, 1, 1, 3)
+    assert b.board[2][1] == ' '   # H cell fired and cleared
+
+
+# ── Spinner + Rocket combo ────────────────────────────────────────────────────
+
+@pytest.mark.board
+def test_spinner_h_rocket_targets_row_with_most_obstacles():
+    # Row 2 has 3 boxes; row 0 has none. H rocket should fire row 2, clearing all.
+    b = Board(board_state=[
+        ['r', 'r', 'r'],
+        ['r', 'S', 'H'],
+        ['B', 'B', 'B'],
+    ])
+    b.activate_powerup(1, 1, 1, 2)
+    assert sum(cell == 'B' for row in b.board for cell in row) == 0
+
+
+@pytest.mark.board
+def test_spinner_v_rocket_targets_col_with_most_obstacles():
+    # Col 2 has 3 boxes; col 0 has none. V rocket should fire col 2, clearing all.
+    b = Board(board_state=[
+        ['r', 'r', 'B'],
+        ['r', 'S', 'B'],
+        ['r', 'V', 'B'],
+    ])
+    b.activate_powerup(1, 1, 2, 1)
+    assert sum(cell == 'B' for row in b.board for cell in row) == 0
+
+
+@pytest.mark.board
+def test_spinner_rocket_order_does_not_matter():
+    b1 = Board(board_state=[
+        ['r', 'r', 'r'],
+        ['H', 'r', 'S'],
+        ['B', 'B', 'B'],
+    ])
+    b2 = Board(board_state=[
+        ['r', 'r', 'r'],
+        ['H', 'r', 'S'],
+        ['B', 'B', 'B'],
+    ])
+    c1 = b1.activate_powerup(1, 0, 1, 2)
+    c2 = b2.activate_powerup(1, 2, 1, 0)
+    assert c1 == c2
+
+
+@pytest.mark.board
+def test_spinner_rocket_chains_powerup_in_best_row():
+    # Row 2 has most boxes. T in that row should chain when H fires it.
+    b = Board(board_state=[
+        ['r', 'r', 'r', 'r', 'r'],
+        ['S', 'r', 'r', 'r', 'H'],
+        ['B', 'T', 'B', 'B', 'r'],   # T chains, blasting the surrounding area
+        ['r', 'r', 'r', 'r', 'r'],
+        ['r', 'r', 'r', 'r', 'r'],
+    ])
+    b.activate_powerup(1, 0, 1, 4)
+    assert b.board[2][1] == ' '   # T cell fired and cleared
