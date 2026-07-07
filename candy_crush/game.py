@@ -10,6 +10,7 @@ class Game:
         self.seed = seed
         self.score = 0
         self.debug = debug
+        self.move_history = []
 
         if board_state:
             print("Custom board loaded")
@@ -37,6 +38,7 @@ class Game:
         )
         self.score = 0
         self.moves_left = self.max_moves
+        self.move_history = []
         return self.board.get_board()
 
     def step(self, move: tuple, animate: bool = False):
@@ -61,6 +63,13 @@ class Game:
             return self.board.get_board(), 0, self.is_over(), info
             
 
+        self.move_history.append((r, c, d))
+
+        if animate:
+            self.board.frames = []
+            self.board.record_frames = True
+            self.board._snap()   # state before the move
+
         r2, c2 = self.board.get_neighbor(r, c, d)
         power_pops = 0
         swapped_powerup_pos = None
@@ -71,6 +80,7 @@ class Game:
             self.board.fill()
         else:
             self.board.swap(r, c, r2, c2)
+            self.board._snap()   # show the swap itself
             if self.board.board[r][c] in POWERUPS:
                 swapped_powerup_pos = (r, c)
                 pre_crush_powerups = {
@@ -82,19 +92,12 @@ class Game:
 
         self.board.last_move = ((r, c), (r2, c2))
 
-        if animate:
-            crushed, frames = self.board.crush(return_frames=True)
-            try:
-                from candy_crush.render import animate_frames
-
-                animate_frames(frames)
-            except Exception:
-                pass
-        else:
-            crushed = self.board.crush()
-
         if swapped_powerup_pos:
+            # Resolve the swap's own match first (this may create new powerups),
+            # then fire the swapped powerup immediately — before any gravity or
+            # cascades — leaving the freshly created powerups untouched.
             sr, sc = swapped_powerup_pos
+            power_pops += self.board.pop()
             if self.board.board[sr][sc] in POWERUPS:
                 new_powerups = {
                     (rr, cc)
@@ -105,8 +108,20 @@ class Game:
                     and not (rr == sr and cc == sc)
                 }
                 power_pops += self.board.activate_powerup(sr, sc, sr, sc, protected=new_powerups)
-                self.board.drop()
-                self.board.fill()
+            self.board.drop()
+            self.board.fill()
+
+        crushed = self.board.crush()
+
+        if animate:
+            self.board._snap()   # final state
+            self.board.record_frames = False
+            try:
+                from candy_crush.render import animate_frames
+
+                animate_frames(self.board.frames)
+            except Exception:
+                pass
 
         # Score is number of candies crushed (tests rely on reward magnitude)
         self.score += crushed + power_pops
@@ -130,6 +145,11 @@ class Game:
             self.moves_left <= 0
             or self.board.valid_moves() == 0
         )
+
+    def print_move_history(self):
+        """Dump the executed moves as a paste-able list for replaying a game."""
+        print(f"\nMove history ({len(self.move_history)} moves):")
+        print(self.move_history)
     
     def render(self):
         # Use the package renderer if available for colored output, otherwise fall back

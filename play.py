@@ -17,6 +17,7 @@ def main(board: List[List[str]] = None):
 
         if move.strip() == "q":
             print(f"Final Score: {game.score}")
+            game.print_move_history()
             print("Thanks for playing!")
             break
 
@@ -38,6 +39,7 @@ def main(board: List[List[str]] = None):
 
         if done:
             print("Game over!")
+            game.print_move_history()
             break
 
 

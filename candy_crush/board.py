@@ -26,6 +26,8 @@ class Board:
         self.last_move = None
         self.debug = debug
         self._drop_toggle = False
+        self.record_frames = False
+        self.frames = []
         if board_state:
             self.board = board_state
             self.rows = len(self.board)
@@ -38,7 +40,7 @@ class Board:
                     [random.choice(CANDIES) for _ in range(cols)]
                     for _ in range(rows)
                 ]
-                if not self.find_matches():
+                if not self.find_matches(place_powerups=False):
                     break
 
 
@@ -76,8 +78,17 @@ class Board:
         return crush_count
 
 
+    def _snap(self):
+        """Record a board snapshot while frame recording is on (skips duplicates)."""
+        if not self.record_frames:
+            return
+        frame = [row.copy() for row in self.board]
+        if not self.frames or self.frames[-1] != frame:
+            self.frames.append(frame)
+
     def activate_powerup(self, r1: int, c1: int, r2: int, c2: int, protected=None):
         print("[Debug] Activating powerup", r1, c1, r2, c2)
+        self._snap()   # board state with this powerup about to fire
         if protected is None:
             protected = set()
         crushed = 0
@@ -229,7 +240,7 @@ class Board:
             crushed += self.clear_area(r1, c1, protected=protected)
         elif self.board[r1][c1] == "S":
             self.board[r1][c1] = " "
-            crushed += self.fire_spinner(r1, c1)
+            crushed += self.fire_spinner(r1, c1, protected=protected)
         elif r1 == r2 and c1 == c2 and self.board[r1][c1] == "5":
             crushed = self.clear_candies(self.get_most_candy())
         elif self.board[r1][c1] == "5" or self.board[r2][c2] == "5":
@@ -239,16 +250,22 @@ class Board:
         return crushed
 
 
-    def fire_spinner(self, r: int, c: int, chain: bool = True) -> int:
+    def fire_spinner(self, r: int, c: int, chain: bool = True, protected=None) -> int:
         """Pop the 4 cardinal neighbours, then clear one random obstacle ('B').
 
         chain=False: powerup neighbors are cleared without triggering their effect
         (used by EB+Spinner so the mass-spawned spinners don't cascade).
+        protected: cells to leave completely untouched (e.g. a powerup created
+        by the same swap that fired this spinner).
         """
+        if protected is None:
+            protected = set()
         crushed = 0
         for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             nr, nc = r + dr, c + dc
             if not self.in_bounds(nr, nc):
+                continue
+            if (nr, nc) in protected:
                 continue
             if self.board[nr][nc] in POWERUPS:
                 if chain:
@@ -468,6 +485,24 @@ class Board:
             for (r, c) in (h_three & v_three):
                 self.board[r][c] = "T"
 
+        # 2x2 square of same candy → Spinner
+        # Runs after line powerups: an already-upgraded cell breaks the square's
+        # equality, so rockets/EBs/TNTs take priority over the spinner.
+        for r in range(self.rows - 1):
+            for c in range(self.cols - 1):
+                cell = self.board[r][c]
+                if cell not in CANDIES:
+                    continue
+                if (self.board[r][c + 1] == cell
+                        and self.board[r + 1][c] == cell
+                        and self.board[r + 1][c + 1] == cell):
+                    square = [(r, c), (r, c + 1), (r + 1, c), (r + 1, c + 1)]
+                    matched.update(square)
+                    if place_powerups:
+                        sr, sc = next((p for p in square if self.positioned_for_upgrade(*p)),
+                                      (r, c))
+                        self.board[sr][sc] = "S"
+
         return matched
     
 
@@ -491,6 +526,7 @@ class Board:
         for r, c in box_pops:
             self.board[r][c] = " "
 
+        self._snap()
         return len(matches) + len(box_pops)
             
 
@@ -507,6 +543,7 @@ class Board:
                         self.board[r + 1][c] = cell
                         self.board[r][c] = ' '
                         changed = True
+        self._snap()
 
 
     def fill(self, fill_with=None):
@@ -551,6 +588,7 @@ class Board:
                         self.board[r][c] = ' '
                         new_falling.add((r + 1, nc))
                 falling = new_falling
+        self._snap()
 
 
     def crush(self, return_frames: bool = False, refill: bool = True):

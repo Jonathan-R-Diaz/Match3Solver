@@ -99,6 +99,75 @@ def test_spinner_skips_empty_neighbors():
     assert crushed == 0
 
 
+# ── 2x2 spawning ──────────────────────────────────────────────────────────────
+
+@pytest.mark.board
+def test_2x2_square_spawns_spinner():
+    b = Board(board_state=[
+        ['r', 'r', 'g'],
+        ['r', 'r', 'b'],
+        ['g', 'b', 'y'],
+    ])
+    matched = b.find_matches()
+    assert {(0, 0), (0, 1), (1, 0), (1, 1)} <= matched
+    assert b.board[0][0] == 'S'   # no last_move → top-left of the square
+
+
+@pytest.mark.board
+def test_swap_creating_2x2_is_valid_move():
+    # Swapping (2,0)'r' right completes an r-square at (1,1)-(2,2); no line match exists
+    b = Board(board_state=[
+        ['y', 'y', 'b'],
+        ['b', 'r', 'r'],
+        ['r', 'g', 'r'],
+    ])
+    assert b.is_valid_move(2, 0, 'd')
+    # and the board is restored after the test-swap
+    assert b.board[2][0] == 'r'
+    assert b.board[2][1] == 'g'
+
+
+@pytest.mark.board
+def test_2x2_spinner_placed_at_swapped_cell():
+    # Post-swap board; last_move marks (2,1) — spinner must spawn there
+    b = Board(board_state=[
+        ['y', 'y', 'b'],
+        ['b', 'r', 'r'],
+        ['g', 'r', 'r'],
+    ])
+    b.last_move = ((2, 0), (2, 1))
+    b.find_matches()
+    assert b.board[2][1] == 'S'
+
+
+@pytest.mark.board
+def test_line_powerup_beats_spinner_on_overlap():
+    # Col 0 is a 4-run (spawns a rocket at its 3rd cell), which overlaps the
+    # r-square at (2,0)-(3,1). The rocket placement breaks the square, so no S.
+    b = Board(board_state=[
+        ['r', 'b', 'g'],
+        ['r', 'y', 'b'],
+        ['r', 'r', 'y'],
+        ['r', 'r', 'b'],
+    ])
+    b.find_matches()
+    assert not any(cell == 'S' for row in b.board for cell in row)
+    assert any(cell in ('V', 'H') for row in b.board for cell in row)
+
+
+@pytest.mark.gameplay
+def test_2x2_swap_through_game_step():
+    g = Game(board_state=[
+        ['y', 'y', 'b'],
+        ['b', 'r', 'r'],
+        ['r', 'g', 'r'],
+    ])
+    _, reward, _, _ = g.step((2, 0, 'd'))
+    assert reward > 0
+    # spinner exists somewhere (it may have dropped a row)
+    assert any(cell == 'S' for row in g.board.board for cell in row)
+
+
 # ── obstacle interaction ─────────────────────────────────────────────────────
 
 @pytest.mark.board
@@ -231,6 +300,20 @@ def test_spinner_appears_in_valid_moves():
     moves = g.board.valid_moves()
     spinner_moves = [(r, c, d) for r, c, d in moves if r == 1 and c == 1]
     assert len(spinner_moves) > 0
+
+
+@pytest.mark.gameplay
+def test_swapped_spinner_fires_immediately_and_spares_new_spinner():
+    # Swiping the 'r' at (1,2) left completes an r-square → new spinner at (1,1),
+    # and the old spinner slides to (1,2). The old spinner must fire RIGHT AWAY
+    # (before gravity/cascades), and the freshly spawned spinner must survive.
+    g = Game(board_state=[
+        ['r', 'r', 'b'],
+        ['r', 'S', 'r'],
+        ['g', 'y', 'g'],
+    ])
+    g.step((1, 2, 'a'))
+    assert g.board.board[1][1] == 'S'   # new spinner untouched by the old one's blast
 
 
 @pytest.mark.gameplay
