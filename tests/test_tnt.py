@@ -85,6 +85,25 @@ def test_plain_four_run_still_spawns_rocket():
     assert ('V' in flat) or ('H' in flat)
 
 
+@pytest.mark.gameplay
+def test_tnt_swap_creating_tnt_fires_old_and_keeps_new():
+    from candy_crush.game import Game
+    # Selecting the T at (3,2) and swiping down swaps it with the 'b' at (4,2).
+    # The 'b' lands at (3,2), completing col-2 and row-3 runs → new TNT at (3,2).
+    # The old TNT must fire from (4,2) immediately, sparing the new TNT.
+    g = Game(board_state=[
+        ['g', 'r', 'y', 'g'],
+        ['r', 'g', 'b', 'y'],
+        ['y', 'r', 'b', 'g'],
+        ['b', 'b', 'T', 'r'],
+        ['r', 'g', 'b', 'g'],
+    ])
+    _, reward, _, _ = g.step((3, 2, 's'))
+    assert reward > 0
+    # the new TNT survived the old one's blast (it may have dropped a row)
+    assert any(cell == 'T' for row in g.board.board for cell in row)
+
+
 # --- Activation tests ---
 
 @pytest.mark.board

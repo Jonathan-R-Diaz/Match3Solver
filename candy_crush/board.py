@@ -280,6 +280,7 @@ class Board:
             rr, cc = random.choice(obstacles)
             self.board[rr][cc] = ' '
             crushed += 1
+        self._snap()
         return crushed
 
 
@@ -327,6 +328,7 @@ class Board:
                 elif self.board[nr][nc] not in (' ', '#'):
                     self.board[nr][nc] = ' '
                     crushed += 1
+        self._snap()
         return crushed
 
 
@@ -343,6 +345,7 @@ class Board:
                 self.board[i][c] = " "
                 crushed += 1
 
+        self._snap()
         return crushed
 
 
@@ -359,6 +362,7 @@ class Board:
                 self.board[r][j] = " "
                 crushed += 1
 
+        self._snap()
         return crushed
 
 

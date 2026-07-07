@@ -74,15 +74,21 @@ class Game:
         power_pops = 0
         swapped_powerup_pos = None
         pre_crush_powerups = None
-        if self.board.board[r][c] in POWERUPS:
+        if self.board.board[r][c] in POWERUPS and \
+           (self.board.board[r2][c2] in POWERUPS or self.board.board[r2][c2] in (' ', '#', 'B')):
+            # powerup+powerup combo, or nothing swappable behind — fire in place
             power_pops += self.board.activate_powerup(r, c, r2, c2)
             self.board.drop()
             self.board.fill()
         else:
             self.board.swap(r, c, r2, c2)
             self.board._snap()   # show the swap itself
+            # whichever cell now holds a powerup is the one that slid in the swap
             if self.board.board[r][c] in POWERUPS:
                 swapped_powerup_pos = (r, c)
+            elif self.board.board[r2][c2] in POWERUPS:
+                swapped_powerup_pos = (r2, c2)
+            if swapped_powerup_pos:
                 pre_crush_powerups = {
                     (rr, cc)
                     for rr in range(self.rows)
