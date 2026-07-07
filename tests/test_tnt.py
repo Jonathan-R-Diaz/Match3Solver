@@ -40,6 +40,51 @@ def test_spawn_tnt(start_board, move, junction):
     assert b.board[jr][jc] == "T"
 
 
+@pytest.mark.board
+def test_cross_with_four_run_spawns_tnt_not_rocket():
+    # Vertical 4-run (col 2) crossing a horizontal 3-run (row 1):
+    # TNT has priority — one T at the junction, no rocket anywhere.
+    b = Board(board_state=[
+        ['g', 'b', 'r', 'y'],
+        ['r', 'r', 'r', 'g'],
+        ['b', 'g', 'r', 'b'],
+        ['y', 'b', 'r', 'g'],
+    ])
+    b.find_matches()
+    assert b.board[1][2] == 'T'
+    flat = [cell for row in b.board for cell in row]
+    assert 'V' not in flat and 'H' not in flat
+
+
+@pytest.mark.board
+def test_cross_of_two_four_runs_spawns_single_tnt():
+    # 4-run down col 1 crossing a 4-run across row 1 → one TNT, zero rockets
+    b = Board(board_state=[
+        ['g', 'r', 'b', 'y', 'g'],
+        ['r', 'r', 'r', 'r', 'b'],
+        ['b', 'r', 'g', 'b', 'y'],
+        ['y', 'r', 'b', 'g', 'r'],
+    ])
+    b.find_matches()
+    assert b.board[1][1] == 'T'
+    flat = [cell for row in b.board for cell in row]
+    assert 'V' not in flat and 'H' not in flat
+
+
+@pytest.mark.board
+def test_plain_four_run_still_spawns_rocket():
+    # No crossing line — the 4-run must still produce a rocket, not a TNT
+    b = Board(board_state=[
+        ['r', 'r', 'r', 'r'],
+        ['g', 'b', 'y', 'g'],
+        ['b', 'g', 'b', 'y'],
+    ])
+    b.find_matches()
+    flat = [cell for row in b.board for cell in row]
+    assert 'T' not in flat
+    assert ('V' in flat) or ('H' in flat)
+
+
 # --- Activation tests ---
 
 @pytest.mark.board

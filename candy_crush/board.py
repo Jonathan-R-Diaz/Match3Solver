@@ -408,8 +408,10 @@ class Board:
         #TODO: Randomize where the powerup gets placed if it was part of a cascade
 
         matched = set()
-        h_three = set()  # cells in exactly-3 horizontal runs (for TNT detection)
+        h_three = set()  # cells in exactly-3 horizontal runs
         v_three = set()  # cells in exactly-3 vertical runs
+        h_fours = []     # 4-runs (list of cell lists); rocket unless crossed → TNT
+        v_fours = []
         self.rows = len(self.board)
         self.cols = len(self.board[0])
 
@@ -430,15 +432,8 @@ class Board:
                     if count == 3:
                         for k in range(c - count + 1, c + 1):
                             h_three.add((r, k))
-                    if place_powerups and count == 4:
-                        placed = False
-                        candy = 0
-                        for k in range(c - count + 1, c + 1):
-                            candy += 1
-                            if self.positioned_for_upgrade(r, k) \
-                            or (candy == 3 and not placed):
-                                self.board[r][k] = self.random_rocket()
-                                placed = True
+                    if count == 4:
+                        h_fours.append([(r, k) for k in range(c - count + 1, c + 1)])
                     if place_powerups and count >= 5:
                         candy = 0
                         for k in range(c - count + 1, c + 1):
@@ -464,16 +459,9 @@ class Board:
                     if count == 3:
                         for k in range(r - count + 1, r + 1):
                             v_three.add((k, c))
-                    if place_powerups and count == 4:
-                        placed = False
-                        candy = 0
-                        for k in range(self.rows - count, self.rows):
-                            candy += 1
-                            if self.positioned_for_upgrade(k, c) \
-                            or (candy == 3 and not placed):
-                                self.board[k][c] = self.random_rocket()
-                                placed = True
-                    elif place_powerups and count >= 5:
+                    if count == 4:
+                        v_fours.append([(k, c) for k in range(r - count + 1, r + 1)])
+                    if place_powerups and count >= 5:
                         candy = 0
                         for k in range(self.rows - count, self.rows):
                             candy += 1
@@ -482,8 +470,18 @@ class Board:
                     count = 1
 
         if place_powerups:
-            for (r, c) in (h_three & v_three):
+            # TNT wins any horizontal x vertical crossing (3- or 4-runs alike);
+            # 4-runs consumed by a TNT do not also spawn a rocket.
+            h_line_cells = h_three | {cell for run in h_fours for cell in run}
+            v_line_cells = v_three | {cell for run in v_fours for cell in run}
+            tnt_spots = h_line_cells & v_line_cells
+            for (r, c) in tnt_spots:
                 self.board[r][c] = "T"
+            for run in h_fours + v_fours:
+                if any(cell in tnt_spots for cell in run):
+                    continue
+                rr, rc = next((p for p in run if self.positioned_for_upgrade(*p)), run[2])
+                self.board[rr][rc] = self.random_rocket()
 
         # 2x2 square of same candy → Spinner
         # Runs after line powerups: an already-upgraded cell breaks the square's
