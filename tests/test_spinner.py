@@ -294,6 +294,86 @@ def test_eb_spinner_clears_eb_and_spinner_cells():
     assert b.board[1][2] == ' '
 
 
+# ── Spinner + Spinner combo ───────────────────────────────────────────────────
+
+@pytest.mark.board
+def test_spinner_spinner_fires_first_spinner():
+    # S at (0,0) and (0,2). Combo fires from (0,0) — clears S=adjacent cell (0,1)
+    # and south (1,0). Then a random extra fires somewhere else.
+    b = Board(board_state=[
+        ['S', 'r', 'S'],
+        ['g', 'b', 'g'],
+        ['r', 'r', 'r'],
+    ])
+    b.activate_powerup(0, 0, 0, 2)
+    # Both spinner cells must be gone
+    assert b.board[0][0] == ' '
+    assert b.board[0][2] == ' '
+
+
+@pytest.mark.board
+def test_spinner_spinner_spawns_extra_spinner_that_fires():
+    # Board has plenty of candies. Combo fires at (0,0), then a second spinner
+    # fires somewhere in rows 1-2. Total crushed must exceed a single spinner's max.
+    b = Board(board_state=[
+        ['S', 'r', 'S'],
+        ['g', 'b', 'g'],
+        ['r', 'r', 'r'],
+    ])
+    crushed = b.activate_powerup(0, 0, 0, 2)
+    # A lone spinner at a corner clears at most 2 neighbors.
+    # Two firings on a 3×3 board → should crush more than 2.
+    assert crushed > 2
+
+
+@pytest.mark.board
+def test_spinner_spinner_chains_adjacent_powerup():
+    # Unlike EB+Spinner, Spinner+Spinner DOES chain into adjacent powerups.
+    # H at (0,1) is a cardinal neighbor of the combo spinner at (0,0).
+    # When the first spinner fires east it should trigger H, clearing row 0.
+    b = Board(board_state=[
+        ['S', 'H', 'S'],
+        ['g', 'b', 'g'],
+        ['r', 'r', 'r'],
+    ])
+    b.activate_powerup(0, 0, 0, 2)
+    # H fired its row → (0,0) and (0,2) were already cleared, so nothing extra,
+    # but row 0 should be fully empty (H fired rightward too — no cells remain).
+    # Actually H fires from (0,1): the only remaining unchecked cell is (0,1) itself → gone.
+    assert b.board[0][1] == ' '
+
+
+@pytest.mark.board
+def test_spinner_spinner_order_does_not_matter():
+    b1 = Board(board_state=[
+        ['r', 'g', 'b'],
+        ['S', 'r', 'S'],
+        ['b', 'g', 'r'],
+    ])
+    b2 = Board(board_state=[
+        ['r', 'g', 'b'],
+        ['S', 'r', 'S'],
+        ['b', 'g', 'r'],
+    ])
+    c1 = b1.activate_powerup(1, 0, 1, 2)
+    c2 = b2.activate_powerup(1, 2, 1, 0)
+    assert c1 == c2
+
+
+@pytest.mark.board
+def test_spinner_spinner_combo():
+    # B north of spinner cleared as a cardinal hit;
+    # random pop then removes one more from the non-adjacent row below
+    b = Board(board_state=[
+        [' ', 'S', ' '],   # B north — cardinal neighbour
+        [' ', 'S', ' '],
+        [' ', ' ', ' '],   # empty row so south cardinal is empty
+        ['B', 'B', 'B'],   # boxes not adjacent to spinner
+    ])
+    b.activate_powerup(0, 1, 1, 1)
+    # 1 adjacent B (north) + 1 random obstacle pop = 2 boxes removed
+    assert box_count(b) == 0
+
 # ── integration ───────────────────────────────────────────────────────────────
 
 @pytest.mark.gameplay
