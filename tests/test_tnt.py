@@ -104,6 +104,25 @@ def test_tnt_swap_creating_tnt_fires_old_and_keeps_new():
     assert any(cell == 'T' for row in g.board.board for cell in row)
 
 
+@pytest.mark.board
+def test_tnt_blast_chains_spinner():
+    # S at (0,1) is inside the TNT's radius-2 blast: it must FIRE (clearing its
+    # own cardinal neighbors), not just be deleted like a plain candy.
+    # (3,4) is outside the blast but cardinal to nothing... proof cell:
+    # the spinner at (0,1) pops one random obstacle; the lone B at (4,4) is
+    # outside the TNT blast (radius 2 from (2,1) covers rows 0-4, cols 0-3),
+    # so only a chained spinner can remove it.
+    b = Board(board_state=[
+        ['r', 'S', 'g', 'y', 'b'],
+        ['g', 'b', 'r', 'g', 'y'],
+        ['y', 'T', 'b', 'r', 'g'],
+        ['b', 'g', 'y', 'b', 'r'],
+        ['r', 'y', 'g', 'r', 'B'],
+    ])
+    b.activate_powerup(2, 1, 2, 1)
+    assert b.board[4][4] == ' '   # box popped → spinner chained, not deleted
+
+
 # --- Activation tests ---
 
 @pytest.mark.board

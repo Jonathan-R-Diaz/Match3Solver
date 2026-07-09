@@ -22,7 +22,8 @@ class Board:
     
     def __init__(self, rows=5, cols=5, seed=0, board_state: List[List[str]] = None, debug = False):
         """Generate a board with no initial matches."""
-        random.seed(seed)
+        self.seed = seed
+        self.rng = random.Random(seed)
         self.last_move = None
         self.debug = debug
         self._drop_toggle = False
@@ -37,7 +38,7 @@ class Board:
             self.cols = cols
             while True:
                 self.board = [
-                    [random.choice(CANDIES) for _ in range(cols)]
+                    [self.rng.choice(CANDIES) for _ in range(cols)]
                     for _ in range(rows)
                 ]
                 if not self.find_matches(place_powerups=False):
@@ -49,9 +50,7 @@ class Board:
 
 
     def copy(self):
-        new_board = Board(self.rows, self.cols)
-        new_board.board = [row.copy() for row in self.board]
-        return new_board
+        return Board(board_state=[row.copy() for row in self.board], seed=self.seed)
     
 
     def simulate_move(self, r, c, direction, revert=True) -> int:
@@ -71,7 +70,7 @@ class Board:
             self.drop()
         else:
             self.swap(r, c, r2, c2)
-        crush_count += self.crush(return_frames=False, refill=False)
+        crush_count += self.crush(refill=False)
         if revert:
             self.board = previous_board
 
@@ -222,7 +221,7 @@ class Board:
             obstacles = [(r, c) for r in range(self.rows) for c in range(self.cols)
                          if self.board[r][c] == 'B']
             if obstacles:
-                er, ec = random.choice(obstacles)
+                er, ec = self.rng.choice(obstacles)
                 self.board[er][ec] = " "
                 crushed += 1
             return crushed
@@ -277,7 +276,7 @@ class Board:
         obstacles = [(rr, cc) for rr in range(self.rows) for cc in range(self.cols)
                      if self.board[rr][cc] == 'B']
         if obstacles:
-            rr, cc = random.choice(obstacles)
+            rr, cc = self.rng.choice(obstacles)
             self.board[rr][cc] = ' '
             crushed += 1
         self._snap()
@@ -323,7 +322,7 @@ class Board:
                     continue
                 if (nr, nc) in protected:
                     continue
-                if self.board[nr][nc] in ['V', 'H', '5', 'T']:
+                if self.board[nr][nc] in POWERUPS:
                     crushed += self.activate_powerup(nr, nc, nr, nc)
                 elif self.board[nr][nc] not in (' ', '#'):
                     self.board[nr][nc] = ' '
@@ -554,7 +553,7 @@ class Board:
             falling = set()
             for c in range(self.cols):
                 if self.board[0][c] == ' ':
-                    self.board[0][c] = fill_with if fill_with is not None else random.choice(CANDIES)
+                    self.board[0][c] = fill_with if fill_with is not None else self.rng.choice(CANDIES)
                     falling.add((0, c))
             if not falling:
                 break
@@ -593,39 +592,23 @@ class Board:
         self._snap()
 
 
-    def crush(self, return_frames: bool = False, refill: bool = True):
+    def crush(self, refill: bool = True):
         """
         Repeatedly find matches, remove them, drop candies and refill.
-        If return_frames is True, also collect intermediate board snapshots (frames)
-        and return (total_crushed, frames). Otherwise just return total_crushed (int).
+        (Frame capture is handled by the board-level recorder — see _snap.)
         """
         total_crushed = 0
-        frames = []
 
         while True:
-            # Capture before-removal state
-            if return_frames:
-                frames.append([row.copy() for row in self.board])
-            
             pops = self.pop()
             total_crushed += pops
             if pops == 0:
                 break
-            
-            # Capture after-removal (empty spots)
-            if return_frames:
-                frames.append([row.copy() for row in self.board])
-            
-            self.drop()
-            if refill:       
-                self.fill()
-            
-            # Capture after refill
-            if return_frames:
-                frames.append([row.copy() for row in self.board])
 
-        if return_frames:
-            return total_crushed, frames
+            self.drop()
+            if refill:
+                self.fill()
+
         return total_crushed
 
 
@@ -675,7 +658,7 @@ class Board:
     def reshuffle(self):
         candies = [cell for row in self.board for cell in row]
         while True:
-            random.shuffle(candies)
+            self.rng.shuffle(candies)
             for i in range(self.rows * self.cols):
                 self.board[i // self.cols][i % self.cols] = candies[i]
             if not self.find_matches() and self.has_possible_moves():
@@ -683,7 +666,7 @@ class Board:
 
 
     def random_rocket(self):
-        heads = random.choice([True, False])
+        heads = self.rng.choice([True, False])
         if self.debug or heads:
             return "H"
 

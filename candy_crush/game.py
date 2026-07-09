@@ -149,7 +149,7 @@ class Game:
     def is_over(self):
         return (
             self.moves_left <= 0
-            or self.board.valid_moves() == 0
+            or len(self.board.valid_moves()) == 0
         )
 
     def print_move_history(self):

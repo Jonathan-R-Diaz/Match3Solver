@@ -10,6 +10,20 @@ def test_game_reset_and_initial_state():
     assert board is not None
 
 
+def test_game_over_when_no_valid_moves():
+    # 2x2-tile stalemate (same color always 2 apart): no swap creates a match,
+    # no powerups to tap. Game must be over even with moves remaining.
+    g = Game(board_state=[
+        ['r', 'b', 'r', 'b'],
+        ['g', 'y', 'g', 'y'],
+        ['r', 'b', 'r', 'b'],
+        ['g', 'y', 'g', 'y'],
+    ], max_moves=10)
+    assert g.board.valid_moves() == []   # documents the stalemate
+    assert g.moves_left > 0
+    assert g.is_over()
+
+
 def test_game_step_and_is_over():
     g = Game(rows=3, cols=3, max_moves=1, seed=0)
     # Force a known board with a match so that crush returns >0
