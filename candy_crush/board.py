@@ -92,139 +92,28 @@ class Board:
             protected = set()
         crushed = 0
 
-        # TNT + TNT combo: double-radius blast
-        if self.grid[r1][c1] == "T" and self.grid[r2][c2] == "T" and not (r1 == r2 and c1 == c2):
-            self.grid[r1][c1] = " "
-            self.grid[r2][c2] = " "
-            crushed += self.clear_area(r1, c1, radius=4)
-            return crushed
-
-        # Rocket + Rocket combo: fire a + (row + col) from the target cell
-        if self.grid[r1][c1] in ROCKETS and self.grid[r2][c2] in ROCKETS and not (r1 == r2 and c1 == c2):
-            self.grid[r1][c1] = " "
-            self.grid[r2][c2] = " "
-            crushed += self.clear_row(r2)
-            crushed += self.clear_col(c2)
-            return crushed
-
-        # Rocket + TNT combo: fire 3 rows + 3 cols centered on the target cell
-        rkt_tnt = (self.grid[r1][c1] in ROCKETS and self.grid[r2][c2] == "T") or \
-                  (self.grid[r2][c2] in ROCKETS and self.grid[r1][c1] == "T")
-        if rkt_tnt and not (r1 == r2 and c1 == c2):
-            self.grid[r1][c1] = " "
-            self.grid[r2][c2] = " "
-            for r in range(r2 - 1, r2 + 2):
-                if self.in_bounds(r, 0):
-                    crushed += self.clear_row(r)
-            for c in range(c2 - 1, c2 + 2):
-                if self.in_bounds(0, c):
-                    crushed += self.clear_col(c)
-            return crushed
-
-        # EB + EB → clear entire board
-        if self.grid[r1][c1] == "5" and self.grid[r2][c2] == "5" and not (r1 == r2 and c1 == c2):
-            self.grid[r1][c1] = " "
-            self.grid[r2][c2] = " "
-            for r in range(self.rows):
-                for c in range(self.cols):
-                    if self.grid[r][c] in POWERUPS:
-                        crushed += self.activate_powerup(r, c, r, c)
-                    elif self.grid[r][c] != " ":
-                        self.grid[r][c] = " "
-                        crushed += 1
-            return crushed
-
-        # EB + Rocket → replace most common candy with that rocket type, fire each
-        eb_rocket = (self.grid[r1][c1] == "5" and self.grid[r2][c2] in ROCKETS) or \
-                    (self.grid[r2][c2] == "5" and self.grid[r1][c1] in ROCKETS)
-        if eb_rocket and not (r1 == r2 and c1 == c2):
-            rkt = self.grid[r1][c1] if self.grid[r1][c1] in ROCKETS else self.grid[r2][c2]
-            self.grid[r1][c1] = " "
-            self.grid[r2][c2] = " "
-            target = self.get_most_candy()
-            positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.grid[r][c] == target]
-            for r, c in positions:
-                self.grid[r][c] = rkt
-            for r, c in positions:
-                crushed += self.activate_powerup(r, c, r, c)
-            return crushed
-
-        # EB + TNT → replace most common candy with TNTs, fire each
-        eb_tnt = (self.grid[r1][c1] == "5" and self.grid[r2][c2] == "T") or \
-                 (self.grid[r2][c2] == "5" and self.grid[r1][c1] == "T")
-        if eb_tnt and not (r1 == r2 and c1 == c2):
-            self.grid[r1][c1] = " "
-            self.grid[r2][c2] = " "
-            target = self.get_most_candy()
-            positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.grid[r][c] == target]
-            for r, c in positions:
-                self.grid[r][c] = "T"
-            for r, c in positions:
-                crushed += self.activate_powerup(r, c, r, c)
-            return crushed
-
-        # EB + Spinner → replace most common candy with Spinners, fire each
-        eb_spinner = (self.grid[r1][c1] == "5" and self.grid[r2][c2] == "S") or \
-                     (self.grid[r2][c2] == "5" and self.grid[r1][c1] == "S")
-        if eb_spinner and not (r1 == r2 and c1 == c2):
-            self.grid[r1][c1] = " "
-            self.grid[r2][c2] = " "
-            target = self.get_most_candy()
-            positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.grid[r][c] == target]
-            for r, c in positions:
-                self.grid[r][c] = "S"
-            for r, c in positions:
-                self.grid[r][c] = " "
-                crushed += self.fire_spinner(r, c, chain=False)
-            return crushed
-
-        # Spinner + TNT → fire TNT from position that maximizes obstacles cleared
-        spinner_tnt = (self.grid[r1][c1] == "S" and self.grid[r2][c2] == "T") or \
-                      (self.grid[r2][c2] == "S" and self.grid[r1][c1] == "T")
-        if spinner_tnt and not (r1 == r2 and c1 == c2):
-            self.grid[r1][c1] = " "
-            self.grid[r2][c2] = " "
-            best_r, best_c = max(
-                ((r, c) for r in range(self.rows) for c in range(self.cols)),
-                key=lambda rc: sum(
-                    1 for dr in range(-2, 3) for dc in range(-2, 3)
-                    if self.in_bounds(rc[0]+dr, rc[1]+dc)
-                    and self.grid[rc[0]+dr][rc[1]+dc] == 'B'
-                )
-            )
-            crushed += self.clear_area(best_r, best_c)
-            return crushed
-
-        # Spinner + Rocket → fire rocket along row/col with most obstacles
-        spinner_rocket = (self.grid[r1][c1] == "S" and self.grid[r2][c2] in ROCKETS) or \
-                         (self.grid[r2][c2] == "S" and self.grid[r1][c1] in ROCKETS)
-        if spinner_rocket and not (r1 == r2 and c1 == c2):
-            rkt = self.grid[r1][c1] if self.grid[r1][c1] in ROCKETS else self.grid[r2][c2]
-            self.grid[r1][c1] = " "
-            self.grid[r2][c2] = " "
-            if rkt == 'H':
-                best_r = max(range(self.rows),
-                             key=lambda r: sum(1 for c in range(self.cols) if self.grid[r][c] == 'B'))
-                crushed += self.clear_row(best_r)
-            else:
-                best_c = max(range(self.cols),
-                             key=lambda c: sum(1 for r in range(self.rows) if self.grid[r][c] == 'B'))
-                crushed += self.clear_col(best_c)
-            return crushed
-
-        # Spinner + Spinner → fire both spinners, then spawn + fire one extra anywhere
-        if self.grid[r1][c1] == "S" and self.grid[r2][c2] == "S" and not (r1 == r2 and c1 == c2):
-            self.grid[r1][c1] = " "
-            self.grid[r2][c2] = " "
-            crushed += self.fire_spinner(r1, c1)
-            crushed += self.fire_spinner(r2, c2)
-            obstacles = [(r, c) for r in range(self.rows) for c in range(self.cols)
-                         if self.grid[r][c] == 'B']
-            if obstacles:
-                er, ec = self.rng.choice(obstacles)
-                self.grid[er][ec] = " "
-                crushed += 1
-            return crushed
+        if not (r1 == r2 and c1 == c2):
+            a, b = self.grid[r1][c1], self.grid[r2][c2]
+            if a == "T" and b == "T":
+                return self._combo_tnt_tnt(r1, c1, r2, c2)
+            if a in ROCKETS and b in ROCKETS:
+                return self._combo_rocket_rocket(r1, c1, r2, c2)
+            if (a in ROCKETS and b == "T") or (b in ROCKETS and a == "T"):
+                return self._combo_rocket_tnt(r1, c1, r2, c2)
+            if a == "5" and b == "5":
+                return self._combo_eb_eb(r1, c1, r2, c2)
+            if (a == "5" and b in ROCKETS) or (b == "5" and a in ROCKETS):
+                return self._combo_eb_rocket(r1, c1, r2, c2)
+            if (a == "5" and b == "T") or (b == "5" and a == "T"):
+                return self._combo_eb_tnt(r1, c1, r2, c2)
+            if (a == "5" and b == "S") or (b == "5" and a == "S"):
+                return self._combo_eb_spinner(r1, c1, r2, c2)
+            if (a == "S" and b == "T") or (b == "S" and a == "T"):
+                return self._combo_spinner_tnt(r1, c1, r2, c2)
+            if (a == "S" and b in ROCKETS) or (b == "S" and a in ROCKETS):
+                return self._combo_spinner_rocket(r1, c1, r2, c2)
+            if a == "S" and b == "S":
+                return self._combo_spinner_spinner(r1, c1, r2, c2)
 
         if self.grid[r2][c2] in ("V", "H", "T", "S"):
             r1, c1 = r2, c2
@@ -248,6 +137,133 @@ class Board:
         self.grid[r1][c1] = " "
         return crushed
 
+
+    # ── powerup + powerup combos (dispatched from activate_powerup) ──────────
+
+    def _combo_tnt_tnt(self, r1, c1, r2, c2):
+        """TNT + TNT: double-radius blast."""
+        self.grid[r1][c1] = " "
+        self.grid[r2][c2] = " "
+        return self.clear_area(r1, c1, radius=4)
+
+    def _combo_rocket_rocket(self, r1, c1, r2, c2):
+        """Rocket + Rocket: fire a + (row + col) from the target cell."""
+        self.grid[r1][c1] = " "
+        self.grid[r2][c2] = " "
+        return self.clear_row(r2) + self.clear_col(c2)
+
+    def _combo_rocket_tnt(self, r1, c1, r2, c2):
+        """Rocket + TNT: fire 3 rows + 3 cols centered on the target cell."""
+        self.grid[r1][c1] = " "
+        self.grid[r2][c2] = " "
+        crushed = 0
+        for r in range(r2 - 1, r2 + 2):
+            if self.in_bounds(r, 0):
+                crushed += self.clear_row(r)
+        for c in range(c2 - 1, c2 + 2):
+            if self.in_bounds(0, c):
+                crushed += self.clear_col(c)
+        return crushed
+
+    def _combo_eb_eb(self, r1, c1, r2, c2):
+        """EB + EB: clear the entire board, chaining every powerup."""
+        self.grid[r1][c1] = " "
+        self.grid[r2][c2] = " "
+        crushed = 0
+        for r in range(self.rows):
+            for c in range(self.cols):
+                if self.grid[r][c] in POWERUPS:
+                    crushed += self.activate_powerup(r, c, r, c)
+                elif self.grid[r][c] != " ":
+                    self.grid[r][c] = " "
+                    crushed += 1
+        return crushed
+
+    def _combo_eb_rocket(self, r1, c1, r2, c2):
+        """EB + Rocket: replace most common candy with that rocket type, fire each."""
+        rkt = self.grid[r1][c1] if self.grid[r1][c1] in ROCKETS else self.grid[r2][c2]
+        self.grid[r1][c1] = " "
+        self.grid[r2][c2] = " "
+        crushed = 0
+        target = self.get_most_candy()
+        positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.grid[r][c] == target]
+        for r, c in positions:
+            self.grid[r][c] = rkt
+        for r, c in positions:
+            crushed += self.activate_powerup(r, c, r, c)
+        return crushed
+
+    def _combo_eb_tnt(self, r1, c1, r2, c2):
+        """EB + TNT: replace most common candy with TNTs, fire each."""
+        self.grid[r1][c1] = " "
+        self.grid[r2][c2] = " "
+        crushed = 0
+        target = self.get_most_candy()
+        positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.grid[r][c] == target]
+        for r, c in positions:
+            self.grid[r][c] = "T"
+        for r, c in positions:
+            crushed += self.activate_powerup(r, c, r, c)
+        return crushed
+
+    def _combo_eb_spinner(self, r1, c1, r2, c2):
+        """EB + Spinner: replace most common candy with spinners, fire each.
+
+        The mass-spawned spinners do NOT chain other powerups (chain=False) —
+        powerups in their blast are left untouched and drop normally.
+        """
+        self.grid[r1][c1] = " "
+        self.grid[r2][c2] = " "
+        crushed = 0
+        target = self.get_most_candy()
+        positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.grid[r][c] == target]
+        for r, c in positions:
+            self.grid[r][c] = "S"
+        for r, c in positions:
+            self.grid[r][c] = " "
+            crushed += self.fire_spinner(r, c, chain=False)
+        return crushed
+
+    def _combo_spinner_tnt(self, r1, c1, r2, c2):
+        """Spinner + TNT: fire the TNT from the cell covering the most obstacles."""
+        self.grid[r1][c1] = " "
+        self.grid[r2][c2] = " "
+        best_r, best_c = max(
+            ((r, c) for r in range(self.rows) for c in range(self.cols)),
+            key=lambda rc: sum(
+                1 for dr in range(-2, 3) for dc in range(-2, 3)
+                if self.in_bounds(rc[0]+dr, rc[1]+dc)
+                and self.grid[rc[0]+dr][rc[1]+dc] == 'B'
+            )
+        )
+        return self.clear_area(best_r, best_c)
+
+    def _combo_spinner_rocket(self, r1, c1, r2, c2):
+        """Spinner + Rocket: fire the rocket along the row/col with most obstacles."""
+        rkt = self.grid[r1][c1] if self.grid[r1][c1] in ROCKETS else self.grid[r2][c2]
+        self.grid[r1][c1] = " "
+        self.grid[r2][c2] = " "
+        if rkt == 'H':
+            best_r = max(range(self.rows),
+                         key=lambda r: sum(1 for c in range(self.cols) if self.grid[r][c] == 'B'))
+            return self.clear_row(best_r)
+        best_c = max(range(self.cols),
+                     key=lambda c: sum(1 for r in range(self.rows) if self.grid[r][c] == 'B'))
+        return self.clear_col(best_c)
+
+    def _combo_spinner_spinner(self, r1, c1, r2, c2):
+        """Spinner + Spinner: fire both, then pop one extra random obstacle."""
+        self.grid[r1][c1] = " "
+        self.grid[r2][c2] = " "
+        crushed = self.fire_spinner(r1, c1)
+        crushed += self.fire_spinner(r2, c2)
+        obstacles = [(r, c) for r in range(self.rows) for c in range(self.cols)
+                     if self.grid[r][c] == 'B']
+        if obstacles:
+            er, ec = self.rng.choice(obstacles)
+            self.grid[er][ec] = " "
+            crushed += 1
+        return crushed
 
     def fire_spinner(self, r: int, c: int, chain: bool = True, protected=None) -> int:
         """Pop the 4 cardinal neighbours, then clear one random obstacle ('B').
