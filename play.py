@@ -6,6 +6,8 @@ from typing import List
 def main(board: List[List[str]] = None):
     parser = ArgumentParser()
     parser.add_argument('--animate', action='store_true', help='Enable terminal animation for crushes')
+    parser.add_argument('--slomo', action='store_true',
+                        help='Step through labeled frames one Enter-press at a time (implies --animate)')
     args = parser.parse_args()
 
     game = Game(board_state=board)
@@ -34,7 +36,9 @@ def main(board: List[List[str]] = None):
             print("Row and column must be integers.")
             continue
 
-        obs, reward, done, info = game.step((r, c, d), animate=args.animate)
+        obs, reward, done, info = game.step((r, c, d),
+                                            animate=args.animate or args.slomo,
+                                            step_mode=args.slomo)
         #print(f"[debug] obs: {obs} \nreward: {reward} \ndone: {done} \ninfo: {info}")
 
         if done:

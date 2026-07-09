@@ -77,17 +77,21 @@ class Board:
         return crush_count
 
 
-    def _snap(self):
-        """Record a board snapshot while frame recording is on (skips duplicates)."""
+    def _snap(self, label: str = ""):
+        """Record a labeled board snapshot while frame recording is on.
+
+        Frames are (label, grid) tuples; consecutive identical grids are skipped
+        so labels describe the mutation that produced each new state.
+        """
         if not self.record_frames:
             return
         frame = [row.copy() for row in self.grid]
-        if not self.frames or self.frames[-1] != frame:
-            self.frames.append(frame)
+        if not self.frames or self.frames[-1][1] != frame:
+            self.frames.append((label, frame))
 
     def activate_powerup(self, r1: int, c1: int, r2: int, c2: int, protected=None):
         print("[Debug] Activating powerup", r1, c1, r2, c2)
-        self._snap()   # board state with this powerup about to fire
+        self._snap(f"activating {self.grid[r1][c1]} @ ({r1},{c1})")
         if protected is None:
             protected = set()
         crushed = 0
@@ -295,7 +299,7 @@ class Board:
             rr, cc = self.rng.choice(obstacles)
             self.grid[rr][cc] = ' '
             crushed += 1
-        self._snap()
+        self._snap("spinner fired")
         return crushed
 
 
@@ -343,7 +347,7 @@ class Board:
                 elif self.grid[nr][nc] not in (' ', '#'):
                     self.grid[nr][nc] = ' '
                     crushed += 1
-        self._snap()
+        self._snap(f"area cleared @ ({r},{c})")
         return crushed
 
 
@@ -360,7 +364,7 @@ class Board:
                 self.grid[i][c] = " "
                 crushed += 1
 
-        self._snap()
+        self._snap(f"col {c} cleared")
         return crushed
 
 
@@ -377,7 +381,7 @@ class Board:
                 self.grid[r][j] = " "
                 crushed += 1
 
-        self._snap()
+        self._snap(f"row {r} cleared")
         return crushed
 
 
@@ -543,7 +547,7 @@ class Board:
         for r, c in box_pops:
             self.grid[r][c] = " "
 
-        self._snap()
+        self._snap("match pop")
         return len(matches) + len(box_pops)
             
 
@@ -560,7 +564,7 @@ class Board:
                         self.grid[r + 1][c] = cell
                         self.grid[r][c] = ' '
                         changed = True
-        self._snap()
+        self._snap("drop")
 
 
     def fill(self, fill_with=None):
@@ -605,7 +609,7 @@ class Board:
                         self.grid[r][c] = ' '
                         new_falling.add((r + 1, nc))
                 falling = new_falling
-        self._snap()
+        self._snap("fill")
 
 
     def crush(self, refill: bool = True):

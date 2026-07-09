@@ -41,7 +41,7 @@ class Game:
         self.move_history = []
         return self.board.get_board()
 
-    def step(self, move: tuple, animate: bool = False):
+    def step(self, move: tuple, animate: bool = False, step_mode: bool = False):
         """
         move = (r1, c1, d)
         Returns:
@@ -68,7 +68,7 @@ class Game:
         if animate:
             self.board.frames = []
             self.board.record_frames = True
-            self.board._snap()   # state before the move
+            self.board._snap("start")
 
         r2, c2 = self.board.get_neighbor(r, c, d)
         power_pops = 0
@@ -82,7 +82,7 @@ class Game:
             self.board.fill()
         else:
             self.board.swap(r, c, r2, c2)
-            self.board._snap()   # show the swap itself
+            self.board._snap("swap")
             # whichever cell now holds a powerup is the one that slid in the swap
             if self.board.grid[r][c] in POWERUPS:
                 swapped_powerup_pos = (r, c)
@@ -120,12 +120,12 @@ class Game:
         crushed = self.board.crush()
 
         if animate:
-            self.board._snap()   # final state
+            self.board._snap("final")
             self.board.record_frames = False
             try:
                 from candy_crush.render import animate_frames
 
-                animate_frames(self.board.frames)
+                animate_frames(self.board.frames, step_mode=step_mode)
             except Exception:
                 pass
 

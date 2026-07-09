@@ -39,13 +39,25 @@ def render_board(board: List[List[str]], score: Optional[int] = None, use_color:
         print(f'Score: {score}\n')
 
 
-def animate_frames(frames: List[List[List[str]]], delay: float = 0.35, use_color: bool = True) -> None:
-    """Play a list of board frames in the terminal with a small delay."""
+def animate_frames(frames, delay: float = 0.35, use_color: bool = True, step_mode: bool = False) -> None:
+    """Play a list of (label, grid) frames in the terminal.
+
+    step_mode=True: wait for Enter between frames (slo-mo debugging)
+    instead of sleeping.
+    """
     import time
     import sys
 
-    for frame in frames:
+    total = len(frames)
+    for i, frame in enumerate(frames):
+        # accept both labeled tuples and bare grids
+        label, grid = frame if isinstance(frame, tuple) else ("", frame)
         print('\033[H\033[J', end='')
-        render_board(frame, use_color=use_color)
+        print(f"[frame {i + 1}/{total}] {label}")
+        render_board(grid, use_color=use_color)
         sys.stdout.flush()
-        time.sleep(delay)
+        if step_mode:
+            if i < total - 1:
+                input("-- Enter for next frame --")
+        else:
+            time.sleep(delay)
