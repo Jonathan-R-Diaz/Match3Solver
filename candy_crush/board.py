@@ -89,6 +89,31 @@ class Board:
         if not self.frames or self.frames[-1][1] != frame:
             self.frames.append((label, frame))
 
+    def validate(self) -> List[str]:
+        """Invariant checks for a board at rest (end of a step).
+
+        Returns a list of violation descriptions; empty list = healthy.
+        Only meaningful at quiescent points — mid-cascade boards legitimately
+        hold matches and floating pieces.
+        """
+        violations = []
+        alphabet = set(CANDIES) | POWERUPS | {' ', '#', 'B'}
+
+        for r in range(self.rows):
+            for c in range(self.cols):
+                cell = self.grid[r][c]
+                if cell not in alphabet:
+                    violations.append(f"unknown symbol {cell!r} at ({r},{c})")
+                # a candy/powerup resting directly on empty space is floating
+                if cell in alphabet and cell not in (' ', '#', 'B') \
+                        and r + 1 < self.rows and self.grid[r + 1][c] == ' ':
+                    violations.append(f"floating piece {cell!r} at ({r},{c})")
+
+        if self.find_matches(place_powerups=False):
+            violations.append("unresolved matches on a board at rest")
+
+        return violations
+
     def activate_powerup(self, r1: int, c1: int, r2: int, c2: int, protected=None):
         print("[Debug] Activating powerup", r1, c1, r2, c2)
         self._snap(f"activating {self.grid[r1][c1]} @ ({r1},{c1})")

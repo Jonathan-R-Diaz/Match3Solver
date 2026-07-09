@@ -18,6 +18,7 @@ class Game:
             self.rows = len(board_state)
             self.cols = len(board_state[0])
             self.board.print_board()
+            self.initial_board = [row.copy() for row in self.board.grid]
         else:
             self.rows = rows
             self.cols = cols
@@ -39,6 +40,7 @@ class Game:
         self.score = 0
         self.moves_left = self.max_moves
         self.move_history = []
+        self.initial_board = [row.copy() for row in self.board.grid]
         return self.board.get_board()
 
     def step(self, move: tuple, animate: bool = False, step_mode: bool = False):
@@ -137,6 +139,17 @@ class Game:
         print(f"Crushed {total} candies!")
 
         done = self.is_over()
+
+        if self.debug:
+            violations = self.board.validate()
+            if violations:
+                raise AssertionError(
+                    "Board invariants violated after step:\n  "
+                    + "\n  ".join(violations)
+                    + f"\nRepro: seed={self.seed}"
+                    + f"\ninitial_board={self.initial_board!r}"
+                    + f"\nmove_history={self.move_history!r}"
+                )
 
         info = {
             "score": self.score,

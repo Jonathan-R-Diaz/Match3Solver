@@ -44,20 +44,20 @@ def test_game_step_and_is_over():
 @pytest.mark.gameplay
 def test_swap_create_detonate():
     board = [
-        ["@", "%", "%", "T", "%", "@", "@"],
-        ["@", "@", "$", "%", "@", "%", "@"],
-        ["&", "%", "@", "$", "%", "@", "&"],
+        ["r", "b", "b", "T", "b", "r", "r"],
+        ["r", "r", "g", "b", "r", "b", "r"],
+        ["y", "b", "r", "g", "b", "r", "y"],
 
     ]
     game = Game(board_state=board, debug=True)
-    game.render() 
+    game.render()
     r, c, d = (1, 3, "w")
     game.step((r, c, d))
     game.board.print_board()
     candies = set([candy for row in game.board.grid for candy in row])
     assert "H" in candies
     assert "T" not in candies
-    expected_candies = ["@", "@", "&"]
+    expected_candies = ["r", "r", "y"]
     for i in range(3):
         assert game.board.grid[i][0] == game.board.grid[i][6] == expected_candies[i]
 
