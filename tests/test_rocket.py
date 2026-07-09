@@ -152,7 +152,7 @@ def test_spawn_rocket_horizontal(start_board, expected_board, move):
     b.last_move = ((r1, c1), (r2, c2))
 
     assert b.pop() == 4
-    assert b.board == expected_board
+    assert b.grid == expected_board
 
 
 @pytest.mark.parametrize("start_board, expected_board, move", 
@@ -385,7 +385,7 @@ def test_spawn_rocket_vertical(start_board, expected_board, move):
     b.last_move = ((r1, c1), (r2, c2))
 
     assert b.pop() == 4
-    assert b.board == expected_board
+    assert b.grid == expected_board
 
 
 @pytest.mark.parametrize("move, ch", 
@@ -412,7 +412,7 @@ def test_rocket_power_horizontal(move, ch):
     b.swap(r1, c1, r2, c2)
     assert b.activate_powerup(r1, c1, r2, c2) == 4
 
-    for row in b.board:
+    for row in b.grid:
         assert ch not in row
         assert "H" not in row
 
@@ -443,7 +443,7 @@ def test_rocket_power_vertical(move, ch):
     b.swap(r1, c1, r2, c2)
     assert b.activate_powerup(r1, c1, r2, c2) == 4
 
-    for row in b.board:
+    for row in b.grid:
         assert ch not in row
         assert "H" not in row
 
@@ -460,7 +460,7 @@ def test_rocket_chain():
 
     assert b.activate_powerup(2, 3, 2, 3) == 12
 
-    for row in b.board:
+    for row in b.grid:
         for ch in row:
             assert ch == " "
 
@@ -477,7 +477,7 @@ def test_rocket_chain_heavy():
 
     assert b.activate_powerup(2, 3, 2, 3) == 22
 
-    for row in b.board:
+    for row in b.grid:
         for ch in row:
             assert ch == " "
 

@@ -5,7 +5,7 @@ from candy_crush.board import Board
 def test_create_electro_on_board():
     b = Board(rows=5, cols=6)
     # Create a horizontal match of 5 to test power-up creation
-    b.board = [
+    b.grid = [
         ['@', '$', '$', '$', '$', '$'],
         ['@', ' ', ' ', ' ', ' ', ' '],
         ['@', ' ', ' ', ' ', ' ', ' '],
@@ -22,7 +22,7 @@ def test_create_electro_on_board():
         [' ', ' ', ' ', ' ', ' ', ' '],
         ['5', ' ', ' ', '5', ' ', ' ']
     ]
-    assert b.board == expected_board  # Check that the power-up was created in the expected location
+    assert b.grid == expected_board  # Check that the power-up was created in the expected location
 
 
 @pytest.mark.parametrize("ch, count", [
@@ -41,7 +41,7 @@ def test_electro_power(ch: str, count: int):
     b = Board(rows=5, cols=5)
 
     # Create a horizontal match of 5 to test power-up creation
-    b.board = [
+    b.grid = [
         ['@', '@', '#', '$', '&'],
         ['@', '@', '#', '$', '&'],
         ['@', '@', '#', '$', '&'],
@@ -54,16 +54,16 @@ def test_electro_power(ch: str, count: int):
 
     if ch == " ":
         ch = "@"
-    for row in b.board:
+    for row in b.grid:
         assert ch not in row
     assert crushed == count
-    assert b.board[4][0] == ' '
+    assert b.grid[4][0] == ' '
 
 
 def test_electro_valid_moves():
     b = Board(rows=3, cols=3, seed=0)
     # Force a simple match board: three same in first row
-    b.board = [
+    b.grid = [
         [' ', '@', ' '],
         ['#', '5', '&'],
         [' ', '&', ' ']

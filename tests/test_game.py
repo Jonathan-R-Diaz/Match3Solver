@@ -27,7 +27,7 @@ def test_game_over_when_no_valid_moves():
 def test_game_step_and_is_over():
     g = Game(rows=3, cols=3, max_moves=1, seed=0)
     # Force a known board with a match so that crush returns >0
-    g.board.board = [
+    g.board.grid = [
         ['@','@','@'],
         ['#','$','&'],
         ['%','^','*']
@@ -54,12 +54,12 @@ def test_swap_create_detonate():
     r, c, d = (1, 3, "w")
     game.step((r, c, d))
     game.board.print_board()
-    candies = set([candy for row in game.board.board for candy in row])
+    candies = set([candy for row in game.board.grid for candy in row])
     assert "H" in candies
     assert "T" not in candies
     expected_candies = ["@", "@", "&"]
     for i in range(3):
-        assert game.board.board[i][0] == game.board.board[i][6] == expected_candies[i]
+        assert game.board.grid[i][0] == game.board.grid[i][6] == expected_candies[i]
 
     
 @pytest.mark.parametrize("start, end", [
@@ -202,4 +202,4 @@ def test_swap_create_detonate():
 def test_drop_physics(start, end):
     game = Game(board_state=start)
     game.board.fill(fill_with="$")
-    assert game.board.board == end
+    assert game.board.grid == end

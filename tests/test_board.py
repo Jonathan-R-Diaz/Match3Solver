@@ -13,7 +13,7 @@ def test_board_initial_no_matches():
 def test_swap_and_match_detection():
     b = Board(rows=3, cols=3, seed=42)
     # Manually create a horizontal match after a swap
-    b.board = [
+    b.grid = [
         ['$', '#', '&'],
         ['$', '#', '&'],
         ['#', '$', '$']
@@ -28,7 +28,7 @@ def test_swap_and_match_detection():
 def test_crush_removes_matches_and_refills():
     b = Board(rows=3, cols=3, seed=0)
     # Force a simple match board: three same in first row
-    b.board = [
+    b.grid = [
         ['@', '@', '@'],
         ['#', '$', '&'],
         ['$', '&', '#']

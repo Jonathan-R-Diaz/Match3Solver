@@ -82,9 +82,9 @@ def detect_powerup_types(board: List[List[str]], matched: Set[Tuple[int, int]]) 
 
 
 def _board_array_from_obj(board_obj) -> List[List[str]]:
-    # Accept either a Board instance with .board or a raw 2D list
+    # Accept either a Board instance with .grid or a raw 2D list
     if hasattr(board_obj, 'board'):
-        return [row.copy() for row in board_obj.board]
+        return [row.copy() for row in board_obj.grid]
     # assume it's already a 2D list
     return [row.copy() for row in board_obj]
 
@@ -93,8 +93,8 @@ def evaluate_swap(board_obj, r: int, c: int, d: str, weights: Optional[Dict[str,
     if weights is None:
         weights = {"5": 1000, "T": 800, "4": 500, "per_candy": 10}
 
-    rows = len(board_obj.board)
-    cols = len(board_obj.board[0])
+    rows = len(board_obj.grid)
+    cols = len(board_obj.grid[0])
     # neighbor
     moves = {"w": (-1, 0), "s": (1, 0), "a": (0, -1), "d": (0, 1)}
     if d not in moves:
@@ -128,8 +128,8 @@ def evaluate_swap(board_obj, r: int, c: int, d: str, weights: Optional[Dict[str,
 def choose_best_move(board_obj, weights: Optional[Dict[str, int]] = None) -> Optional[Tuple[int, int, str, float]]:
     # Enumerate valid swaps using board_obj.is_valid_move to prune
     best = None  # tuple (r,c,d,score)
-    rows = len(board_obj.board)
-    cols = len(board_obj.board[0])
+    rows = len(board_obj.grid)
+    cols = len(board_obj.grid[0])
     for r in range(rows):
         for c in range(cols):
             for d in ["w", "a", "s", "d"]:

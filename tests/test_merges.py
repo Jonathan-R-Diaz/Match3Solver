@@ -14,7 +14,7 @@ def test_rocket_rocket_combo():
     ])
     crushed = b.activate_powerup(2, 1, 2, 2)
     assert crushed == 7
-    assert b.board == [
+    assert b.grid == [
         ['$', '$', ' ', '$', '$'],
         ['$', '$', ' ', '$', '$'],
         [' ', ' ', ' ', ' ', ' '],
@@ -28,11 +28,11 @@ def test_tnt_tnt_combo():
     # Two adjacent TNTs at (4,5)+(4,6): radius=4 blast from (4,5)
     # Clears rows 0-8, cols 1-9; col 0, col 10, and rows 9-10 survive
     b = Board(board_state=[['$'] * 11 for _ in range(11)])
-    b.board[4][5] = 'T'
-    b.board[4][6] = 'T'
+    b.grid[4][5] = 'T'
+    b.grid[4][6] = 'T'
     crushed = b.activate_powerup(4, 5, 4, 6)
     assert crushed == 79
-    assert b.board == [
+    assert b.grid == [
         ['$', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '$'],
         ['$', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '$'],
         ['$', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '$'],
@@ -51,11 +51,11 @@ def test_tnt_tnt_combo():
 def test_rocket_tnt_combo():
     # H at (3,3) + T at (3,4): fires 3 rows (2-4) + 3 cols (3-5) centered on (3,4)
     b = Board(board_state=[['$'] * 7 for _ in range(7)])
-    b.board[3][3] = 'H'
-    b.board[3][4] = 'T'
+    b.grid[3][3] = 'H'
+    b.grid[3][4] = 'T'
     crushed = b.activate_powerup(3, 3, 3, 4)
     assert crushed == 31
-    assert b.board == [
+    assert b.grid == [
         ['$', '$', '$', ' ', ' ', ' ', '$'],
         ['$', '$', '$', ' ', ' ', ' ', '$'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
@@ -79,7 +79,7 @@ def test_rocket_tnt_chain():
     ])
     crushed = b.activate_powerup(1, 0, 1, 0)
     assert crushed == 20
-    assert b.board == [
+    assert b.grid == [
         ['$', ' ', ' ', ' ', ' ', ' ', '$'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         ['$', ' ', ' ', ' ', ' ', ' ', '$'],
@@ -98,7 +98,7 @@ def test_eb_eb_combo():
     b = Board(board_state=board)
     crushed = b.activate_powerup(7, 7, 7, 8)
     assert crushed == 223
-    assert b.board == [[' '] * 15 for _ in range(15)]
+    assert b.grid == [[' '] * 15 for _ in range(15)]
 
 
 @pytest.mark.board
@@ -115,7 +115,7 @@ def test_eb_tnt_combo():
     b = Board(board_state=board)
     crushed = b.activate_powerup(7, 7, 7, 8)
     assert crushed == 4
-    assert b.board == [[' '] * 15 for _ in range(15)]
+    assert b.grid == [[' '] * 15 for _ in range(15)]
 
 
 @pytest.mark.board
@@ -133,7 +133,7 @@ def test_eb_rocket_combo():
     b = Board(board_state=board)
     crushed = b.activate_powerup(7, 7, 7, 8)
     assert crushed == 4
-    assert b.board == [[' '] * 15 for _ in range(15)]
+    assert b.grid == [[' '] * 15 for _ in range(15)]
 
 
 # ── EB + Spinner combo ────────────────────────────────────────────────────────
@@ -147,7 +147,7 @@ def test_eb_spinner_replaces_most_common_candy_with_spinners():
         ['r', 'g', 'S'],
     ])
     b.activate_powerup(1, 1, 2, 2)
-    assert all(b.board[r][c] != 'r' for r in range(3) for c in range(3))
+    assert all(b.grid[r][c] != 'r' for r in range(3) for c in range(3))
 
 
 @pytest.mark.board
@@ -161,7 +161,7 @@ def test_eb_spinner_fires_each_replacement():
     ])
     crushed = b.activate_powerup(1, 1, 2, 2)
     assert crushed > 0
-    assert all(b.board[r][c] != 'r' for r in range(3) for c in range(3))
+    assert all(b.grid[r][c] != 'r' for r in range(3) for c in range(3))
 
 
 @pytest.mark.board
@@ -195,8 +195,8 @@ def test_eb_spinner_does_not_chain_adjacent_powerups():
         ['g', 'g', 'g', 'g', '5', 'S'],
     ])
     b.activate_powerup(2, 4, 2, 5)
-    assert b.board[1][2] == 'V'   # V was skipped entirely — still on the board
-    assert b.board[2][2] == 'g'   # V's column was NOT cleared (V never fired)
+    assert b.grid[1][2] == 'V'   # V was skipped entirely — still on the board
+    assert b.grid[2][2] == 'g'   # V's column was NOT cleared (V never fired)
 
 
 @pytest.mark.board
@@ -207,8 +207,8 @@ def test_eb_spinner_clears_eb_and_spinner_cells():
         ['r', 'b', 'r'],
     ])
     b.activate_powerup(1, 1, 1, 2)
-    assert b.board[1][1] == ' '
-    assert b.board[1][2] == ' '
+    assert b.grid[1][1] == ' '
+    assert b.grid[1][2] == ' '
 
 
 # ── Spinner + Spinner combo ───────────────────────────────────────────────────
@@ -222,8 +222,8 @@ def test_spinner_spinner_fires_both_spinners():
         ['r', 'r', 'r'],
     ])
     b.activate_powerup(0, 0, 0, 2)
-    assert b.board[0][0] == ' '
-    assert b.board[0][2] == ' '
+    assert b.grid[0][0] == ' '
+    assert b.grid[0][2] == ' '
 
 
 @pytest.mark.board
@@ -236,9 +236,9 @@ def test_spinner_spinner_extra_pops_one_obstacle():
         [' ', ' ', ' '],
         ['B', 'B', 'B'],
     ])
-    before = sum(cell == 'B' for row in b.board for cell in row)
+    before = sum(cell == 'B' for row in b.grid for cell in row)
     b.activate_powerup(0, 1, 1, 1)
-    assert sum(cell == 'B' for row in b.board for cell in row) == before - 3
+    assert sum(cell == 'B' for row in b.grid for cell in row) == before - 3
 
 
 @pytest.mark.board
@@ -250,7 +250,7 @@ def test_spinner_spinner_chains_adjacent_powerup():
         ['r', 'r', 'r'],
     ])
     b.activate_powerup(0, 0, 0, 2)
-    assert b.board[0][1] == ' '
+    assert b.grid[0][1] == ' '
 
 
 @pytest.mark.board
@@ -279,7 +279,7 @@ def test_spinner_spinner_combo():
         ['B', 'B', 'B'],
     ])
     b.activate_powerup(0, 1, 1, 1)
-    assert sum(cell == 'B' for row in b.board for cell in row) == 0
+    assert sum(cell == 'B' for row in b.grid for cell in row) == 0
 
 
 # ── Spinner + TNT combo ───────────────────────────────────────────────────────
@@ -296,7 +296,7 @@ def test_spinner_tnt_targets_row_with_most_obstacles():
     ])
     b.activate_powerup(1, 1, 2, 1)
     # All 4 boxes should be gone (TNT radius-2 at row 3 covers the cluster)
-    assert sum(cell == 'B' for row in b.board for cell in row) == 0
+    assert sum(cell == 'B' for row in b.grid for cell in row) == 0
 
 
 @pytest.mark.board
@@ -327,7 +327,7 @@ def test_spinner_tnt_chains_powerups_in_blast():
         ['r', 'r', 'r', 'r', 'r'],
     ])
     b.activate_powerup(1, 1, 1, 3)
-    assert b.board[2][1] == ' '   # H cell fired and cleared
+    assert b.grid[2][1] == ' '   # H cell fired and cleared
 
 
 # ── Spinner + Rocket combo ────────────────────────────────────────────────────
@@ -341,7 +341,7 @@ def test_spinner_h_rocket_targets_row_with_most_obstacles():
         ['B', 'B', 'B'],
     ])
     b.activate_powerup(1, 1, 1, 2)
-    assert sum(cell == 'B' for row in b.board for cell in row) == 0
+    assert sum(cell == 'B' for row in b.grid for cell in row) == 0
 
 
 @pytest.mark.board
@@ -353,7 +353,7 @@ def test_spinner_v_rocket_targets_col_with_most_obstacles():
         ['r', 'V', 'B'],
     ])
     b.activate_powerup(1, 1, 2, 1)
-    assert sum(cell == 'B' for row in b.board for cell in row) == 0
+    assert sum(cell == 'B' for row in b.grid for cell in row) == 0
 
 
 @pytest.mark.board
@@ -384,4 +384,4 @@ def test_spinner_rocket_chains_powerup_in_best_row():
         ['r', 'r', 'r', 'r', 'r'],
     ])
     b.activate_powerup(1, 0, 1, 4)
-    assert b.board[2][1] == ' '   # T cell fired and cleared
+    assert b.grid[2][1] == ' '   # T cell fired and cleared

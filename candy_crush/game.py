@@ -74,8 +74,8 @@ class Game:
         power_pops = 0
         swapped_powerup_pos = None
         pre_crush_powerups = None
-        if self.board.board[r][c] in POWERUPS and \
-           (self.board.board[r2][c2] in POWERUPS or self.board.board[r2][c2] in (' ', '#', 'B')):
+        if self.board.grid[r][c] in POWERUPS and \
+           (self.board.grid[r2][c2] in POWERUPS or self.board.grid[r2][c2] in (' ', '#', 'B')):
             # powerup+powerup combo, or nothing swappable behind — fire in place
             power_pops += self.board.activate_powerup(r, c, r2, c2)
             self.board.drop()
@@ -84,16 +84,16 @@ class Game:
             self.board.swap(r, c, r2, c2)
             self.board._snap()   # show the swap itself
             # whichever cell now holds a powerup is the one that slid in the swap
-            if self.board.board[r][c] in POWERUPS:
+            if self.board.grid[r][c] in POWERUPS:
                 swapped_powerup_pos = (r, c)
-            elif self.board.board[r2][c2] in POWERUPS:
+            elif self.board.grid[r2][c2] in POWERUPS:
                 swapped_powerup_pos = (r2, c2)
             if swapped_powerup_pos:
                 pre_crush_powerups = {
                     (rr, cc)
                     for rr in range(self.rows)
                     for cc in range(self.cols)
-                    if self.board.board[rr][cc] in POWERUPS
+                    if self.board.grid[rr][cc] in POWERUPS
                 }
 
         self.board.last_move = ((r, c), (r2, c2))
@@ -104,12 +104,12 @@ class Game:
             # cascades — leaving the freshly created powerups untouched.
             sr, sc = swapped_powerup_pos
             power_pops += self.board.pop()
-            if self.board.board[sr][sc] in POWERUPS:
+            if self.board.grid[sr][sc] in POWERUPS:
                 new_powerups = {
                     (rr, cc)
                     for rr in range(self.rows)
                     for cc in range(self.cols)
-                    if self.board.board[rr][cc] in POWERUPS
+                    if self.board.grid[rr][cc] in POWERUPS
                     and (rr, cc) not in pre_crush_powerups
                     and not (rr == sr and cc == sc)
                 }

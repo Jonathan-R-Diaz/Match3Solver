@@ -6,7 +6,7 @@ from candy_crush.game import Game
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 def box_count(board_obj):
-    return sum(cell == 'B' for row in board_obj.board for cell in row)
+    return sum(cell == 'B' for row in board_obj.grid for cell in row)
 
 def fire(board_obj, r, c):
     return board_obj.activate_powerup(r, c, r, c)
@@ -23,11 +23,11 @@ def test_spinner_clears_four_cardinal_neighbors():
     ])
     crushed = fire(b, 1, 1)
     assert crushed == 4
-    assert b.board[0][1] == ' '
-    assert b.board[1][0] == ' '
-    assert b.board[1][2] == ' '
-    assert b.board[2][1] == ' '
-    assert b.board[1][1] == ' '   # spinner itself gone
+    assert b.grid[0][1] == ' '
+    assert b.grid[1][0] == ' '
+    assert b.grid[1][2] == ' '
+    assert b.grid[2][1] == ' '
+    assert b.grid[1][1] == ' '   # spinner itself gone
 
 
 @pytest.mark.board
@@ -39,10 +39,10 @@ def test_spinner_does_not_clear_diagonals():
     ])
     fire(b, 1, 1)
     # corners must survive
-    assert b.board[0][0] == 'r'
-    assert b.board[0][2] == 'r'
-    assert b.board[2][0] == 'r'
-    assert b.board[2][2] == 'r'
+    assert b.grid[0][0] == 'r'
+    assert b.grid[0][2] == 'r'
+    assert b.grid[2][0] == 'r'
+    assert b.grid[2][2] == 'r'
 
 
 @pytest.mark.board
@@ -54,9 +54,9 @@ def test_spinner_at_top_edge():
     ])
     crushed = fire(b, 0, 1)
     assert crushed == 3
-    assert b.board[0][0] == ' '
-    assert b.board[0][2] == ' '
-    assert b.board[1][1] == ' '
+    assert b.grid[0][0] == ' '
+    assert b.grid[0][2] == ' '
+    assert b.grid[1][1] == ' '
 
 
 @pytest.mark.board
@@ -67,9 +67,9 @@ def test_spinner_at_corner():
     ])
     crushed = fire(b, 0, 0)
     assert crushed == 2    # only E and S neighbors
-    assert b.board[0][1] == ' '
-    assert b.board[1][0] == ' '
-    assert b.board[1][1] == 'b'   # diagonal, untouched
+    assert b.grid[0][1] == ' '
+    assert b.grid[1][0] == ' '
+    assert b.grid[1][1] == 'b'   # diagonal, untouched
 
 
 @pytest.mark.board
@@ -82,10 +82,10 @@ def test_spinner_skips_walls():
     crushed = fire(b, 1, 1)
     assert crushed == 0
     # all walls intact
-    assert b.board[0][1] == '#'
-    assert b.board[1][0] == '#'
-    assert b.board[1][2] == '#'
-    assert b.board[2][1] == '#'
+    assert b.grid[0][1] == '#'
+    assert b.grid[1][0] == '#'
+    assert b.grid[1][2] == '#'
+    assert b.grid[2][1] == '#'
 
 
 @pytest.mark.board
@@ -110,7 +110,7 @@ def test_2x2_square_spawns_spinner():
     ])
     matched = b.find_matches()
     assert {(0, 0), (0, 1), (1, 0), (1, 1)} <= matched
-    assert b.board[0][0] == 'S'   # no last_move → top-left of the square
+    assert b.grid[0][0] == 'S'   # no last_move → top-left of the square
 
 
 @pytest.mark.board
@@ -123,8 +123,8 @@ def test_swap_creating_2x2_is_valid_move():
     ])
     assert b.is_valid_move(2, 0, 'd')
     # and the board is restored after the test-swap
-    assert b.board[2][0] == 'r'
-    assert b.board[2][1] == 'g'
+    assert b.grid[2][0] == 'r'
+    assert b.grid[2][1] == 'g'
 
 
 @pytest.mark.board
@@ -137,7 +137,7 @@ def test_2x2_spinner_placed_at_swapped_cell():
     ])
     b.last_move = ((2, 0), (2, 1))
     b.find_matches()
-    assert b.board[2][1] == 'S'
+    assert b.grid[2][1] == 'S'
 
 
 @pytest.mark.board
@@ -151,8 +151,8 @@ def test_line_powerup_beats_spinner_on_overlap():
         ['r', 'r', 'b'],
     ])
     b.find_matches()
-    assert not any(cell == 'S' for row in b.board for cell in row)
-    assert any(cell in ('V', 'H') for row in b.board for cell in row)
+    assert not any(cell == 'S' for row in b.grid for cell in row)
+    assert any(cell in ('V', 'H') for row in b.grid for cell in row)
 
 
 @pytest.mark.gameplay
@@ -165,7 +165,7 @@ def test_2x2_swap_through_game_step():
     _, reward, _, _ = g.step((2, 0, 'd'))
     assert reward > 0
     # spinner exists somewhere (it may have dropped a row)
-    assert any(cell == 'S' for row in g.board.board for cell in row)
+    assert any(cell == 'S' for row in g.board.grid for cell in row)
 
 
 # ── obstacle interaction ─────────────────────────────────────────────────────
@@ -236,8 +236,8 @@ def test_spinner_chains_adjacent_rocket():
     ])
     fire(b, 1, 1)
     # H was at (0,1); when spinner hits it, H fires and clears row 0
-    assert b.board[0][0] == ' '
-    assert b.board[0][2] == ' '
+    assert b.grid[0][0] == ' '
+    assert b.grid[0][2] == ' '
 
 
 @pytest.mark.board
@@ -249,7 +249,7 @@ def test_spinner_chains_adjacent_tnt():
     ])
     fire(b, 1, 1)
     # T at (0,1) fires with radius 2; should clear the surrounding area
-    assert b.board[0][1] == ' '
+    assert b.grid[0][1] == ' '
 
 
 # ── swap mechanics ────────────────────────────────────────────────────────────
@@ -264,13 +264,13 @@ def test_swap_candy_into_spinner_fires_from_candy_position():
         ['r', 'g', 'r'],
     ])
     b.swap(1, 1, 1, 2)               # candy slides right, spinner to (1,1)
-    assert b.board[1][1] == 'S'      # confirm spinner is now at (1,1)
+    assert b.grid[1][1] == 'S'      # confirm spinner is now at (1,1)
     fire(b, 1, 1)
-    assert b.board[0][1] == ' '      # north of (1,1)
-    assert b.board[2][1] == ' '      # south of (1,1)
-    assert b.board[1][0] == ' '      # west of (1,1)
-    assert b.board[1][2] == ' '      # east of (1,1) — the candy that slid there
-    assert b.board[1][1] == ' '      # spinner itself gone
+    assert b.grid[0][1] == ' '      # north of (1,1)
+    assert b.grid[2][1] == ' '      # south of (1,1)
+    assert b.grid[1][0] == ' '      # west of (1,1)
+    assert b.grid[1][2] == ' '      # east of (1,1) — the candy that slid there
+    assert b.grid[1][1] == ' '      # spinner itself gone
 
 
 @pytest.mark.board
@@ -282,10 +282,10 @@ def test_select_spinner_directly_fires_from_its_own_position():
         ['r', 'r', 'b'],
     ])
     fire(b, 0, 0)
-    assert b.board[0][0] == ' '      # spinner itself gone
-    assert b.board[0][1] == ' '      # east
-    assert b.board[1][0] == ' '      # south
-    assert b.board[1][1] == 'b'      # diagonal — untouched
+    assert b.grid[0][0] == ' '      # spinner itself gone
+    assert b.grid[0][1] == ' '      # east
+    assert b.grid[1][0] == ' '      # south
+    assert b.grid[1][1] == 'b'      # diagonal — untouched
 
 
 # ── integration ───────────────────────────────────────────────────────────────
@@ -313,7 +313,7 @@ def test_swapped_spinner_fires_immediately_and_spares_new_spinner():
         ['g', 'y', 'g'],
     ])
     g.step((1, 2, 'a'))
-    assert g.board.board[1][1] == 'S'   # new spinner untouched by the old one's blast
+    assert g.board.grid[1][1] == 'S'   # new spinner untouched by the old one's blast
 
 
 @pytest.mark.gameplay

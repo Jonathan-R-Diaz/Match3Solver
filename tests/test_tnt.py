@@ -37,7 +37,7 @@ def test_spawn_tnt(start_board, move, junction):
     b.last_move = ((r1, c1), (r2, c2))
     b.pop()
     jr, jc = junction
-    assert b.board[jr][jc] == "T"
+    assert b.grid[jr][jc] == "T"
 
 
 @pytest.mark.board
@@ -51,8 +51,8 @@ def test_cross_with_four_run_spawns_tnt_not_rocket():
         ['y', 'b', 'r', 'g'],
     ])
     b.find_matches()
-    assert b.board[1][2] == 'T'
-    flat = [cell for row in b.board for cell in row]
+    assert b.grid[1][2] == 'T'
+    flat = [cell for row in b.grid for cell in row]
     assert 'V' not in flat and 'H' not in flat
 
 
@@ -66,8 +66,8 @@ def test_cross_of_two_four_runs_spawns_single_tnt():
         ['y', 'r', 'b', 'g', 'r'],
     ])
     b.find_matches()
-    assert b.board[1][1] == 'T'
-    flat = [cell for row in b.board for cell in row]
+    assert b.grid[1][1] == 'T'
+    flat = [cell for row in b.grid for cell in row]
     assert 'V' not in flat and 'H' not in flat
 
 
@@ -80,7 +80,7 @@ def test_plain_four_run_still_spawns_rocket():
         ['b', 'g', 'b', 'y'],
     ])
     b.find_matches()
-    flat = [cell for row in b.board for cell in row]
+    flat = [cell for row in b.grid for cell in row]
     assert 'T' not in flat
     assert ('V' in flat) or ('H' in flat)
 
@@ -101,7 +101,7 @@ def test_tnt_swap_creating_tnt_fires_old_and_keeps_new():
     _, reward, _, _ = g.step((3, 2, 's'))
     assert reward > 0
     # the new TNT survived the old one's blast (it may have dropped a row)
-    assert any(cell == 'T' for row in g.board.board for cell in row)
+    assert any(cell == 'T' for row in g.board.grid for cell in row)
 
 
 @pytest.mark.board
@@ -120,7 +120,7 @@ def test_tnt_blast_chains_spinner():
         ['r', 'y', 'g', 'r', 'B'],
     ])
     b.activate_powerup(2, 1, 2, 1)
-    assert b.board[4][4] == ' '   # box popped → spinner chained, not deleted
+    assert b.grid[4][4] == ' '   # box popped → spinner chained, not deleted
 
 
 # --- Activation tests ---
@@ -135,7 +135,7 @@ def test_tnt_clears_3x3():
     ])
     crushed = b.activate_powerup(1, 1, 1, 1)
     assert crushed == 8
-    assert b.board == [
+    assert b.grid == [
         [' ', ' ', ' '],
         [' ', ' ', ' '],
         [' ', ' ', ' '],
@@ -152,7 +152,7 @@ def test_tnt_partial_board():
     ])
     crushed = b.activate_powerup(0, 0, 0, 0)
     assert crushed == 8
-    assert b.board == [
+    assert b.grid == [
         [' ', ' ', ' ', '$'],
         [' ', ' ', ' ', '$'],
         [' ', ' ', ' ', '$'],
@@ -169,7 +169,7 @@ def test_tnt_chains_rocket():
     ])
     crushed = b.activate_powerup(1, 1, 1, 1)
     assert crushed == 11
-    assert b.board == [
+    assert b.grid == [
         [' ', ' ', ' ', ' ', '$'],
         [' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', '$'],
@@ -181,11 +181,11 @@ def test_tnt_chains_tnt():
     # T at (3,2) blast hits T at (3,4) (exactly at radius edge); second TNT fires its own blast.
     # First blast: rows 1-5 cols 0-4. Second blast: rows 1-5 cols 2-6. Union clears rows 1-5 entirely.
     b = Board(board_state=[['$'] * 7 for _ in range(7)])
-    b.board[3][2] = 'T'
-    b.board[3][4] = 'T'
+    b.grid[3][2] = 'T'
+    b.grid[3][4] = 'T'
     crushed = b.activate_powerup(3, 2, 3, 2)
     assert crushed == 33
-    assert b.board == [
+    assert b.grid == [
         ['$', '$', '$', '$', '$', '$', '$'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],

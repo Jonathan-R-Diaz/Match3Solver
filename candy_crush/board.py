@@ -30,14 +30,14 @@ class Board:
         self.record_frames = False
         self.frames = []
         if board_state:
-            self.board = board_state
-            self.rows = len(self.board)
-            self.cols = len(self.board[0])
+            self.grid = board_state
+            self.rows = len(self.grid)
+            self.cols = len(self.grid[0])
         else:
             self.rows = rows
             self.cols = cols
             while True:
-                self.board = [
+                self.grid = [
                     [self.rng.choice(CANDIES) for _ in range(cols)]
                     for _ in range(rows)
                 ]
@@ -46,16 +46,16 @@ class Board:
 
 
     def get_board(self):
-        return self.board
+        return self.grid
 
 
     def copy(self):
-        return Board(board_state=[row.copy() for row in self.board], seed=self.seed)
+        return Board(board_state=[row.copy() for row in self.grid], seed=self.seed)
     
 
     def simulate_move(self, r, c, direction, revert=True) -> int:
         if revert:
-            previous_board = [row.copy() for row in self.board]
+            previous_board = [row.copy() for row in self.grid]
         neighbor = self.get_neighbor(r, c, direction)
         if neighbor is None:
             return None
@@ -65,14 +65,14 @@ class Board:
             return None
 
         crush_count = 0
-        if self.board[r][c] in POWERUPS:
+        if self.grid[r][c] in POWERUPS:
             crush_count += self.activate_powerup(r, c, r2, c2)
             self.drop()
         else:
             self.swap(r, c, r2, c2)
         crush_count += self.crush(refill=False)
         if revert:
-            self.board = previous_board
+            self.grid = previous_board
 
         return crush_count
 
@@ -81,7 +81,7 @@ class Board:
         """Record a board snapshot while frame recording is on (skips duplicates)."""
         if not self.record_frames:
             return
-        frame = [row.copy() for row in self.board]
+        frame = [row.copy() for row in self.grid]
         if not self.frames or self.frames[-1] != frame:
             self.frames.append(frame)
 
@@ -93,26 +93,26 @@ class Board:
         crushed = 0
 
         # TNT + TNT combo: double-radius blast
-        if self.board[r1][c1] == "T" and self.board[r2][c2] == "T" and not (r1 == r2 and c1 == c2):
-            self.board[r1][c1] = " "
-            self.board[r2][c2] = " "
+        if self.grid[r1][c1] == "T" and self.grid[r2][c2] == "T" and not (r1 == r2 and c1 == c2):
+            self.grid[r1][c1] = " "
+            self.grid[r2][c2] = " "
             crushed += self.clear_area(r1, c1, radius=4)
             return crushed
 
         # Rocket + Rocket combo: fire a + (row + col) from the target cell
-        if self.board[r1][c1] in ROCKETS and self.board[r2][c2] in ROCKETS and not (r1 == r2 and c1 == c2):
-            self.board[r1][c1] = " "
-            self.board[r2][c2] = " "
+        if self.grid[r1][c1] in ROCKETS and self.grid[r2][c2] in ROCKETS and not (r1 == r2 and c1 == c2):
+            self.grid[r1][c1] = " "
+            self.grid[r2][c2] = " "
             crushed += self.clear_row(r2)
             crushed += self.clear_col(c2)
             return crushed
 
         # Rocket + TNT combo: fire 3 rows + 3 cols centered on the target cell
-        rkt_tnt = (self.board[r1][c1] in ROCKETS and self.board[r2][c2] == "T") or \
-                  (self.board[r2][c2] in ROCKETS and self.board[r1][c1] == "T")
+        rkt_tnt = (self.grid[r1][c1] in ROCKETS and self.grid[r2][c2] == "T") or \
+                  (self.grid[r2][c2] in ROCKETS and self.grid[r1][c1] == "T")
         if rkt_tnt and not (r1 == r2 and c1 == c2):
-            self.board[r1][c1] = " "
-            self.board[r2][c2] = " "
+            self.grid[r1][c1] = " "
+            self.grid[r2][c2] = " "
             for r in range(r2 - 1, r2 + 2):
                 if self.in_bounds(r, 0):
                     crushed += self.clear_row(r)
@@ -122,130 +122,130 @@ class Board:
             return crushed
 
         # EB + EB → clear entire board
-        if self.board[r1][c1] == "5" and self.board[r2][c2] == "5" and not (r1 == r2 and c1 == c2):
-            self.board[r1][c1] = " "
-            self.board[r2][c2] = " "
+        if self.grid[r1][c1] == "5" and self.grid[r2][c2] == "5" and not (r1 == r2 and c1 == c2):
+            self.grid[r1][c1] = " "
+            self.grid[r2][c2] = " "
             for r in range(self.rows):
                 for c in range(self.cols):
-                    if self.board[r][c] in POWERUPS:
+                    if self.grid[r][c] in POWERUPS:
                         crushed += self.activate_powerup(r, c, r, c)
-                    elif self.board[r][c] != " ":
-                        self.board[r][c] = " "
+                    elif self.grid[r][c] != " ":
+                        self.grid[r][c] = " "
                         crushed += 1
             return crushed
 
         # EB + Rocket → replace most common candy with that rocket type, fire each
-        eb_rocket = (self.board[r1][c1] == "5" and self.board[r2][c2] in ROCKETS) or \
-                    (self.board[r2][c2] == "5" and self.board[r1][c1] in ROCKETS)
+        eb_rocket = (self.grid[r1][c1] == "5" and self.grid[r2][c2] in ROCKETS) or \
+                    (self.grid[r2][c2] == "5" and self.grid[r1][c1] in ROCKETS)
         if eb_rocket and not (r1 == r2 and c1 == c2):
-            rkt = self.board[r1][c1] if self.board[r1][c1] in ROCKETS else self.board[r2][c2]
-            self.board[r1][c1] = " "
-            self.board[r2][c2] = " "
+            rkt = self.grid[r1][c1] if self.grid[r1][c1] in ROCKETS else self.grid[r2][c2]
+            self.grid[r1][c1] = " "
+            self.grid[r2][c2] = " "
             target = self.get_most_candy()
-            positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.board[r][c] == target]
+            positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.grid[r][c] == target]
             for r, c in positions:
-                self.board[r][c] = rkt
+                self.grid[r][c] = rkt
             for r, c in positions:
                 crushed += self.activate_powerup(r, c, r, c)
             return crushed
 
         # EB + TNT → replace most common candy with TNTs, fire each
-        eb_tnt = (self.board[r1][c1] == "5" and self.board[r2][c2] == "T") or \
-                 (self.board[r2][c2] == "5" and self.board[r1][c1] == "T")
+        eb_tnt = (self.grid[r1][c1] == "5" and self.grid[r2][c2] == "T") or \
+                 (self.grid[r2][c2] == "5" and self.grid[r1][c1] == "T")
         if eb_tnt and not (r1 == r2 and c1 == c2):
-            self.board[r1][c1] = " "
-            self.board[r2][c2] = " "
+            self.grid[r1][c1] = " "
+            self.grid[r2][c2] = " "
             target = self.get_most_candy()
-            positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.board[r][c] == target]
+            positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.grid[r][c] == target]
             for r, c in positions:
-                self.board[r][c] = "T"
+                self.grid[r][c] = "T"
             for r, c in positions:
                 crushed += self.activate_powerup(r, c, r, c)
             return crushed
 
         # EB + Spinner → replace most common candy with Spinners, fire each
-        eb_spinner = (self.board[r1][c1] == "5" and self.board[r2][c2] == "S") or \
-                     (self.board[r2][c2] == "5" and self.board[r1][c1] == "S")
+        eb_spinner = (self.grid[r1][c1] == "5" and self.grid[r2][c2] == "S") or \
+                     (self.grid[r2][c2] == "5" and self.grid[r1][c1] == "S")
         if eb_spinner and not (r1 == r2 and c1 == c2):
-            self.board[r1][c1] = " "
-            self.board[r2][c2] = " "
+            self.grid[r1][c1] = " "
+            self.grid[r2][c2] = " "
             target = self.get_most_candy()
-            positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.board[r][c] == target]
+            positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.grid[r][c] == target]
             for r, c in positions:
-                self.board[r][c] = "S"
+                self.grid[r][c] = "S"
             for r, c in positions:
-                self.board[r][c] = " "
+                self.grid[r][c] = " "
                 crushed += self.fire_spinner(r, c, chain=False)
             return crushed
 
         # Spinner + TNT → fire TNT from position that maximizes obstacles cleared
-        spinner_tnt = (self.board[r1][c1] == "S" and self.board[r2][c2] == "T") or \
-                      (self.board[r2][c2] == "S" and self.board[r1][c1] == "T")
+        spinner_tnt = (self.grid[r1][c1] == "S" and self.grid[r2][c2] == "T") or \
+                      (self.grid[r2][c2] == "S" and self.grid[r1][c1] == "T")
         if spinner_tnt and not (r1 == r2 and c1 == c2):
-            self.board[r1][c1] = " "
-            self.board[r2][c2] = " "
+            self.grid[r1][c1] = " "
+            self.grid[r2][c2] = " "
             best_r, best_c = max(
                 ((r, c) for r in range(self.rows) for c in range(self.cols)),
                 key=lambda rc: sum(
                     1 for dr in range(-2, 3) for dc in range(-2, 3)
                     if self.in_bounds(rc[0]+dr, rc[1]+dc)
-                    and self.board[rc[0]+dr][rc[1]+dc] == 'B'
+                    and self.grid[rc[0]+dr][rc[1]+dc] == 'B'
                 )
             )
             crushed += self.clear_area(best_r, best_c)
             return crushed
 
         # Spinner + Rocket → fire rocket along row/col with most obstacles
-        spinner_rocket = (self.board[r1][c1] == "S" and self.board[r2][c2] in ROCKETS) or \
-                         (self.board[r2][c2] == "S" and self.board[r1][c1] in ROCKETS)
+        spinner_rocket = (self.grid[r1][c1] == "S" and self.grid[r2][c2] in ROCKETS) or \
+                         (self.grid[r2][c2] == "S" and self.grid[r1][c1] in ROCKETS)
         if spinner_rocket and not (r1 == r2 and c1 == c2):
-            rkt = self.board[r1][c1] if self.board[r1][c1] in ROCKETS else self.board[r2][c2]
-            self.board[r1][c1] = " "
-            self.board[r2][c2] = " "
+            rkt = self.grid[r1][c1] if self.grid[r1][c1] in ROCKETS else self.grid[r2][c2]
+            self.grid[r1][c1] = " "
+            self.grid[r2][c2] = " "
             if rkt == 'H':
                 best_r = max(range(self.rows),
-                             key=lambda r: sum(1 for c in range(self.cols) if self.board[r][c] == 'B'))
+                             key=lambda r: sum(1 for c in range(self.cols) if self.grid[r][c] == 'B'))
                 crushed += self.clear_row(best_r)
             else:
                 best_c = max(range(self.cols),
-                             key=lambda c: sum(1 for r in range(self.rows) if self.board[r][c] == 'B'))
+                             key=lambda c: sum(1 for r in range(self.rows) if self.grid[r][c] == 'B'))
                 crushed += self.clear_col(best_c)
             return crushed
 
         # Spinner + Spinner → fire both spinners, then spawn + fire one extra anywhere
-        if self.board[r1][c1] == "S" and self.board[r2][c2] == "S" and not (r1 == r2 and c1 == c2):
-            self.board[r1][c1] = " "
-            self.board[r2][c2] = " "
+        if self.grid[r1][c1] == "S" and self.grid[r2][c2] == "S" and not (r1 == r2 and c1 == c2):
+            self.grid[r1][c1] = " "
+            self.grid[r2][c2] = " "
             crushed += self.fire_spinner(r1, c1)
             crushed += self.fire_spinner(r2, c2)
             obstacles = [(r, c) for r in range(self.rows) for c in range(self.cols)
-                         if self.board[r][c] == 'B']
+                         if self.grid[r][c] == 'B']
             if obstacles:
                 er, ec = self.rng.choice(obstacles)
-                self.board[er][ec] = " "
+                self.grid[er][ec] = " "
                 crushed += 1
             return crushed
 
-        if self.board[r2][c2] in ("V", "H", "T", "S"):
+        if self.grid[r2][c2] in ("V", "H", "T", "S"):
             r1, c1 = r2, c2
-        if self.board[r1][c1] == "H":
-            self.board[r1][c1] = " "
+        if self.grid[r1][c1] == "H":
+            self.grid[r1][c1] = " "
             crushed += self.clear_row(r1, protected=protected)
-        elif self.board[r1][c1] == "V":
-            self.board[r1][c1] = " "
+        elif self.grid[r1][c1] == "V":
+            self.grid[r1][c1] = " "
             crushed += self.clear_col(c1, protected=protected)
-        elif self.board[r1][c1] == "T":
-            self.board[r1][c1] = " "
+        elif self.grid[r1][c1] == "T":
+            self.grid[r1][c1] = " "
             crushed += self.clear_area(r1, c1, protected=protected)
-        elif self.board[r1][c1] == "S":
-            self.board[r1][c1] = " "
+        elif self.grid[r1][c1] == "S":
+            self.grid[r1][c1] = " "
             crushed += self.fire_spinner(r1, c1, protected=protected)
-        elif r1 == r2 and c1 == c2 and self.board[r1][c1] == "5":
+        elif r1 == r2 and c1 == c2 and self.grid[r1][c1] == "5":
             crushed = self.clear_candies(self.get_most_candy())
-        elif self.board[r1][c1] == "5" or self.board[r2][c2] == "5":
-            crushed = self.clear_candies(self.board[r2][c2])
+        elif self.grid[r1][c1] == "5" or self.grid[r2][c2] == "5":
+            crushed = self.clear_candies(self.grid[r2][c2])
 
-        self.board[r1][c1] = " "
+        self.grid[r1][c1] = " "
         return crushed
 
 
@@ -266,18 +266,18 @@ class Board:
                 continue
             if (nr, nc) in protected:
                 continue
-            if self.board[nr][nc] in POWERUPS:
+            if self.grid[nr][nc] in POWERUPS:
                 if chain:
                     crushed += self.activate_powerup(nr, nc, nr, nc)
                 # chain=False: skip powerups entirely — they stay on the board
-            elif self.board[nr][nc] not in (' ', '#'):
-                self.board[nr][nc] = ' '
+            elif self.grid[nr][nc] not in (' ', '#'):
+                self.grid[nr][nc] = ' '
                 crushed += 1
         obstacles = [(rr, cc) for rr in range(self.rows) for cc in range(self.cols)
-                     if self.board[rr][cc] == 'B']
+                     if self.grid[rr][cc] == 'B']
         if obstacles:
             rr, cc = self.rng.choice(obstacles)
-            self.board[rr][cc] = ' '
+            self.grid[rr][cc] = ' '
             crushed += 1
         self._snap()
         return crushed
@@ -287,7 +287,7 @@ class Board:
         freq = defaultdict(int)
         most_freq = -1
         most_candy = None
-        for row in self.board:
+        for row in self.grid:
             for c in row:
                 freq[c] += 1
                 if freq[c] > most_freq:
@@ -300,7 +300,7 @@ class Board:
 
     def clear_candies(self, candy, drop=True):
         crushed = 0
-        for row in self.board:
+        for row in self.grid:
             for i in range(self.cols):
                 if row[i] == candy:
                     row[i] = " "
@@ -322,10 +322,10 @@ class Board:
                     continue
                 if (nr, nc) in protected:
                     continue
-                if self.board[nr][nc] in POWERUPS:
+                if self.grid[nr][nc] in POWERUPS:
                     crushed += self.activate_powerup(nr, nc, nr, nc)
-                elif self.board[nr][nc] not in (' ', '#'):
-                    self.board[nr][nc] = ' '
+                elif self.grid[nr][nc] not in (' ', '#'):
+                    self.grid[nr][nc] = ' '
                     crushed += 1
         self._snap()
         return crushed
@@ -338,10 +338,10 @@ class Board:
         for i in range(self.rows):
             if (i, c) in protected:
                 continue
-            if self.board[i][c] in POWERUPS:
+            if self.grid[i][c] in POWERUPS:
                 crushed += self.activate_powerup(i, c, i, c)
-            if self.board[i][c] not in (' ', '#'):
-                self.board[i][c] = " "
+            if self.grid[i][c] not in (' ', '#'):
+                self.grid[i][c] = " "
                 crushed += 1
 
         self._snap()
@@ -355,10 +355,10 @@ class Board:
         for j in range(self.cols):
             if (r, j) in protected:
                 continue
-            if self.board[r][j] in POWERUPS:
+            if self.grid[r][j] in POWERUPS:
                 crushed += self.activate_powerup(r, j, r, j)
-            if self.board[r][j] not in (' ', '#'):
-                self.board[r][j] = " "
+            if self.grid[r][j] not in (' ', '#'):
+                self.grid[r][j] = " "
                 crushed += 1
 
         self._snap()
@@ -369,7 +369,7 @@ class Board:
         print("\n    " + " ".join(str(c) for c in range(self.cols)))
         print("  +" + "--" * self.cols + "-+")
         for r in range(self.rows):
-            print(f"{r} | " + " ".join(self.board[r]) + " |")
+            print(f"{r} | " + " ".join(self.grid[r]) + " |")
         print("  +" + "--" * self.cols + "-+")
         print(f"Score: {score}\n")
 
@@ -379,7 +379,7 @@ class Board:
 
 
     def swap(self, r1, c1, r2, c2):
-        self.board[r1][c1], self.board[r2][c2] = self.board[r2][c2], self.board[r1][c1]
+        self.grid[r1][c1], self.grid[r2][c2] = self.grid[r2][c2], self.grid[r1][c1]
 
 
     def get_neighbor(self, r: int, c: int, direction: str):
@@ -415,19 +415,19 @@ class Board:
         v_three = set()  # cells in exactly-3 vertical runs
         h_fours = []     # 4-runs (list of cell lists); rocket unless crossed → TNT
         v_fours = []
-        self.rows = len(self.board)
-        self.cols = len(self.board[0])
+        self.rows = len(self.grid)
+        self.cols = len(self.grid[0])
 
         # Horizontal matches
         for r in range(self.rows):
             count = 1
             for c in range(self.cols - 1):
-                if self.board[r][c] == self.board[r][c + 1] and self.board[r][c] not in (" ", "#", "B"):
+                if self.grid[r][c] == self.grid[r][c + 1] and self.grid[r][c] not in (" ", "#", "B"):
                     count += 1
 
-                if self.board[r][c] != self.board[r][c + 1] or c == self.cols - 2:
+                if self.grid[r][c] != self.grid[r][c + 1] or c == self.cols - 2:
 
-                    if self.board[r][c] == self.board[r][c + 1] and c == self.cols - 2:
+                    if self.grid[r][c] == self.grid[r][c + 1] and c == self.cols - 2:
                         c += 1
                     if count >= 3:
                         for k in range(c - count + 1, c + 1):
@@ -442,7 +442,7 @@ class Board:
                         for k in range(c - count + 1, c + 1):
                             candy += 1
                             if candy == 3:
-                                self.board[r][k] = "5"
+                                self.grid[r][k] = "5"
                     count = 1
 
 
@@ -450,11 +450,11 @@ class Board:
         for c in range(self.cols):
             count = 1
             for r in range(self.rows - 1):
-                if self.board[r][c] == self.board[r + 1][c] and self.board[r][c] not in (" ", "#", "B"):
+                if self.grid[r][c] == self.grid[r + 1][c] and self.grid[r][c] not in (" ", "#", "B"):
                     count += 1
 
-                if self.board[r][c] != self.board[r + 1][c] or r == self.rows - 2:
-                    if self.board[r][c] == self.board[r + 1][c] and r == self.rows - 2:
+                if self.grid[r][c] != self.grid[r + 1][c] or r == self.rows - 2:
+                    if self.grid[r][c] == self.grid[r + 1][c] and r == self.rows - 2:
                         r += 1
                     if count >= 3:
                         for k in range(r - count + 1, r + 1):
@@ -469,7 +469,7 @@ class Board:
                         for k in range(self.rows - count, self.rows):
                             candy += 1
                             if candy == 3:
-                                self.board[k][c] = "5"
+                                self.grid[k][c] = "5"
                     count = 1
 
         if place_powerups:
@@ -479,30 +479,30 @@ class Board:
             v_line_cells = v_three | {cell for run in v_fours for cell in run}
             tnt_spots = h_line_cells & v_line_cells
             for (r, c) in tnt_spots:
-                self.board[r][c] = "T"
+                self.grid[r][c] = "T"
             for run in h_fours + v_fours:
                 if any(cell in tnt_spots for cell in run):
                     continue
                 rr, rc = next((p for p in run if self.positioned_for_upgrade(*p)), run[2])
-                self.board[rr][rc] = self.random_rocket()
+                self.grid[rr][rc] = self.random_rocket()
 
         # 2x2 square of same candy → Spinner
         # Runs after line powerups: an already-upgraded cell breaks the square's
         # equality, so rockets/EBs/TNTs take priority over the spinner.
         for r in range(self.rows - 1):
             for c in range(self.cols - 1):
-                cell = self.board[r][c]
+                cell = self.grid[r][c]
                 if cell not in CANDIES:
                     continue
-                if (self.board[r][c + 1] == cell
-                        and self.board[r + 1][c] == cell
-                        and self.board[r + 1][c + 1] == cell):
+                if (self.grid[r][c + 1] == cell
+                        and self.grid[r + 1][c] == cell
+                        and self.grid[r + 1][c + 1] == cell):
                     square = [(r, c), (r, c + 1), (r + 1, c), (r + 1, c + 1)]
                     matched.update(square)
                     if place_powerups:
                         sr, sc = next((p for p in square if self.positioned_for_upgrade(*p)),
                                       (r, c))
-                        self.board[sr][sc] = "S"
+                        self.grid[sr][sc] = "S"
 
         return matched
     
@@ -514,18 +514,18 @@ class Board:
 
         # Remove matched candies
         for r, c in matches:
-            if self.board[r][c] not in POWERUPS:
-                self.board[r][c] = " "
+            if self.grid[r][c] not in POWERUPS:
+                self.grid[r][c] = " "
 
         # Each matched cell hits adjacent boxes
         box_pops = set()
         for r, c in matches:
             for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1)):
                 nr, nc = r + dr, c + dc
-                if self.in_bounds(nr, nc) and self.board[nr][nc] == "B":
+                if self.in_bounds(nr, nc) and self.grid[nr][nc] == "B":
                     box_pops.add((nr, nc))
         for r, c in box_pops:
-            self.board[r][c] = " "
+            self.grid[r][c] = " "
 
         self._snap()
         return len(matches) + len(box_pops)
@@ -537,12 +537,12 @@ class Board:
             changed = False
             for r in range(self.rows - 2, -1, -1):
                 for c in range(self.cols):
-                    cell = self.board[r][c]
+                    cell = self.grid[r][c]
                     if cell in (' ', '#', 'B'):
                         continue
-                    if self.board[r + 1][c] == ' ':
-                        self.board[r + 1][c] = cell
-                        self.board[r][c] = ' '
+                    if self.grid[r + 1][c] == ' ':
+                        self.grid[r + 1][c] = cell
+                        self.grid[r][c] = ' '
                         changed = True
         self._snap()
 
@@ -552,8 +552,8 @@ class Board:
         while True:
             falling = set()
             for c in range(self.cols):
-                if self.board[0][c] == ' ':
-                    self.board[0][c] = fill_with if fill_with is not None else self.rng.choice(CANDIES)
+                if self.grid[0][c] == ' ':
+                    self.grid[0][c] = fill_with if fill_with is not None else self.rng.choice(CANDIES)
                     falling.add((0, c))
             if not falling:
                 break
@@ -563,14 +563,14 @@ class Board:
                     for c in range(self.cols):
                         if (r, c) not in falling:
                             continue
-                        cell = self.board[r][c]
-                        if self.board[r + 1][c] == ' ':
-                            self.board[r + 1][c] = cell
-                            self.board[r][c] = ' '
+                        cell = self.grid[r][c]
+                        if self.grid[r + 1][c] == ' ':
+                            self.grid[r + 1][c] = cell
+                            self.grid[r][c] = ' '
                             new_falling.add((r + 1, c))
                             continue
-                        below_left = self.in_bounds(r + 1, c - 1) and self.board[r + 1][c - 1] == ' '
-                        below_right = self.in_bounds(r + 1, c + 1) and self.board[r + 1][c + 1] == ' '
+                        below_left = self.in_bounds(r + 1, c - 1) and self.grid[r + 1][c - 1] == ' '
+                        below_right = self.in_bounds(r + 1, c + 1) and self.grid[r + 1][c + 1] == ' '
                         if below_left and below_right:
                             if c < center:
                                 nc = c - 1
@@ -585,8 +585,8 @@ class Board:
                             nc = c + 1
                         else:
                             continue
-                        self.board[r + 1][nc] = cell
-                        self.board[r][c] = ' '
+                        self.grid[r + 1][nc] = cell
+                        self.grid[r][c] = ' '
                         new_falling.add((r + 1, nc))
                 falling = new_falling
         self._snap()
@@ -613,9 +613,9 @@ class Board:
 
 
     def is_valid_move(self, r, c, direction):
-        if self.board[r][c] in (' ', '#', 'B'):
+        if self.grid[r][c] in (' ', '#', 'B'):
             return False
-        if self.board[r][c] in POWERUPS:
+        if self.grid[r][c] in POWERUPS:
             return self.get_neighbor(r, c, direction) is not None
 
         neighbor = self.get_neighbor(r, c, direction)
@@ -647,7 +647,7 @@ class Board:
         moves = []
         for r in range(self.rows):
             for c in range(self.cols):
-                if self.board[r][c] in POWERUPS:
+                if self.grid[r][c] in POWERUPS:
                     moves.append((r,c,"x"))
                 for d in ["w", "a", "s", "d"]:
                     if self.is_valid_move(r, c, d):
@@ -656,11 +656,11 @@ class Board:
 
 
     def reshuffle(self):
-        candies = [cell for row in self.board for cell in row]
+        candies = [cell for row in self.grid for cell in row]
         while True:
             self.rng.shuffle(candies)
             for i in range(self.rows * self.cols):
-                self.board[i // self.cols][i % self.cols] = candies[i]
+                self.grid[i // self.cols][i % self.cols] = candies[i]
             if not self.find_matches() and self.has_possible_moves():
                 return
 
