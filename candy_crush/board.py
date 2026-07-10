@@ -696,7 +696,7 @@ class Board:
             return False
 
         r2, c2 = neighbor
-        if not self.in_bounds(r, c) or not self.in_bounds(r2, c2):
+        if not self.in_bounds(r, c) or not self.in_bounds(r2, c2) or self.grid[r2][c2] in ('#', 'B'):
             return False
 
         # Test swap
