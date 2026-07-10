@@ -233,7 +233,6 @@ class Board:
 
     def _combo_eb_rocket(self, r1, c1, r2, c2):
         """EB + Rocket: replace most common candy with that rocket type, fire each."""
-        rkt = self.grid[r1][c1] if self.grid[r1][c1] in ROCKETS else self.grid[r2][c2]
         self.grid[r1][c1] = " "
         self.grid[r2][c2] = " "
         crushed = 0
