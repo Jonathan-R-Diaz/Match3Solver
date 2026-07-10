@@ -14,7 +14,7 @@ class Game:
 
         if board_state:
             print("Custom board loaded")
-            self.board = Board(board_state=board_state, debug=debug)
+            self.board = Board(board_state=board_state, seed=seed, debug=debug)
             self.rows = len(board_state)
             self.cols = len(board_state[0])
             self.board.print_board()
