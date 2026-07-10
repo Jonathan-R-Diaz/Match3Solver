@@ -51,3 +51,44 @@ def test_is_valid_move_and_has_possible_moves():
     assert len(vm) >= 0
 
 
+def _template():
+    return [
+        ['#', ' ', ' ', ' ', ' ', '#'],
+        [' ', ' ', 'B', 'B', ' ', ' '],
+        [' ', ' ', 'B', 'B', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' '],
+        ['#', ' ', ' ', ' ', ' ', '#'],
+    ]
+
+
+def test_fill_empty_deals_candies_around_obstacles():
+    b = Board(board_state=_template(), seed=7, fill_empty=True)
+    tmpl = _template()
+    for r in range(b.rows):
+        for c in range(b.cols):
+            if tmpl[r][c] in ('#', 'B'):
+                assert b.grid[r][c] == tmpl[r][c]
+            else:
+                assert b.grid[r][c] in ('r', 'b', 'g', 'y')
+    assert b.find_matches(place_powerups=False) == set()
+    assert b.validate() == []
+
+
+def test_fill_empty_is_seed_deterministic():
+    a = Board(board_state=_template(), seed=7, fill_empty=True)
+    b = Board(board_state=_template(), seed=7, fill_empty=True)
+    c = Board(board_state=_template(), seed=8, fill_empty=True)
+    assert a.grid == b.grid
+    assert a.grid != c.grid
+
+
+def test_fill_empty_keeps_preplaced_pieces():
+    tmpl = _template()
+    tmpl[3][0] = 'T'
+    tmpl[4][5] = 'r'
+    b = Board(board_state=tmpl, seed=7, fill_empty=True)
+    assert b.grid[3][0] == 'T'
+    assert b.grid[4][5] == 'r'
+
+

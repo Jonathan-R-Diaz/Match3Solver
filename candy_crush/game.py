@@ -3,7 +3,8 @@ from typing import List
 
 
 class Game:
-    def __init__(self, rows=8, cols=8, max_moves=30, seed=0, board_state: List[List[str]] = None, debug=False):
+    def __init__(self, rows=8, cols=8, max_moves=30, seed=0, board_state: List[List[str]] = None, debug=False,
+                 fill_empty=False):
         self.num_candies = None
         self.max_moves = max_moves
         self.moves_left = max_moves
@@ -11,10 +12,14 @@ class Game:
         self.score = 0
         self.debug = debug
         self.move_history = []
+        # level template: layout whose ' ' cells get dealt random candies
+        self.template = board_state if fill_empty else None
+        self.fill_empty = fill_empty
 
         if board_state:
             print("Custom board loaded")
-            self.board = Board(board_state=board_state, seed=seed, debug=debug)
+            state = [row.copy() for row in board_state] if fill_empty else board_state
+            self.board = Board(board_state=state, seed=seed, debug=debug, fill_empty=fill_empty)
             self.rows = len(board_state)
             self.cols = len(board_state[0])
             self.board.print_board()
@@ -31,12 +36,20 @@ class Game:
         print("Type 'q' to quit.\n")
 
     def reset(self):
-        self.board = Board(
-            rows=self.rows,
-            cols=self.cols,
-            seed=self.seed,
-            debug=self.debug
-        )
+        if self.template:
+            self.board = Board(
+                board_state=[row.copy() for row in self.template],
+                seed=self.seed,
+                debug=self.debug,
+                fill_empty=True,
+            )
+        else:
+            self.board = Board(
+                rows=self.rows,
+                cols=self.cols,
+                seed=self.seed,
+                debug=self.debug
+            )
         self.score = 0
         self.moves_left = self.max_moves
         self.move_history = []
@@ -175,7 +188,7 @@ class Game:
         try:
             from candy_crush.render import render_board
 
-            render_board(self.board.get_board(), score=self.score)
+            render_board(self.board.get_board(), score=self.score, moves_left=self.moves_left)
         except Exception:
             # Fallback to simple text output
             self.board.print_board(self.score)

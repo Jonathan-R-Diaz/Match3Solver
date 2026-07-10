@@ -203,3 +203,32 @@ def test_drop_physics(start, end):
     game = Game(board_state=start)
     game.board.fill(fill_with="r")
     assert game.board.grid == end
+
+@pytest.mark.gameplay
+def test_game_template_fill_and_reset():
+    tmpl = [
+        ['#', ' ', ' ', ' ', ' ', '#'],
+        [' ', ' ', 'B', 'B', ' ', ' '],
+        [' ', ' ', 'B', 'B', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' '],
+        ['#', ' ', ' ', ' ', ' ', '#'],
+    ]
+    g = Game(board_state=tmpl, seed=3, fill_empty=True, debug=True)
+    first_deal = [row.copy() for row in g.board.grid]
+
+    # layout preserved, every blank dealt a candy, board is playable
+    for r in range(6):
+        for c in range(6):
+            if tmpl[r][c] in ('#', 'B'):
+                assert g.board.grid[r][c] == tmpl[r][c]
+            else:
+                assert g.board.grid[r][c] in ('r', 'b', 'g', 'y')
+    assert g.board.validate() == []
+    assert not g.is_over()
+    g.step(g.board.valid_moves()[0])
+
+    # reset re-deals the same layout (same seed -> same deal), template untouched
+    g.reset()
+    assert g.board.grid == first_deal
+    assert all(cell in ('#', 'B', ' ') for row in tmpl for cell in row)

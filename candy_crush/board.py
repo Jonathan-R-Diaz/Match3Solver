@@ -22,7 +22,8 @@ UNMATCHABLE = frozenset({" ", "#", "B"}) | POWERUPS
 
 class Board:
     
-    def __init__(self, rows=5, cols=5, seed=0, board_state: List[List[str]] = None, debug = False):
+    def __init__(self, rows=5, cols=5, seed=0, board_state: List[List[str]] = None, debug = False,
+                 fill_empty: bool = False):
         """Generate a board with no initial matches."""
         self.seed = seed
         self.rng = random.Random(seed)
@@ -35,6 +36,8 @@ class Board:
             self.grid = board_state
             self.rows = len(self.grid)
             self.cols = len(self.grid[0])
+            if fill_empty:
+                self._fill_template()
         else:
             self.rows = rows
             self.cols = cols
@@ -46,6 +49,23 @@ class Board:
                 if not self.find_matches(place_powerups=False):
                     break
 
+
+    def _fill_template(self):
+        """Fill every ' ' cell with a random candy, leaving obstacles and any
+        pre-placed pieces untouched, so a bare layout ('#'/'B') becomes a
+        playable board. Retries until the deal has no initial matches."""
+        empties = [
+            (r, c)
+            for r in range(self.rows)
+            for c in range(self.cols)
+            if self.grid[r][c] == ' '
+        ]
+        for _ in range(200):
+            for r, c in empties:
+                self.grid[r][c] = self.rng.choice(CANDIES)
+            if not self.find_matches(place_powerups=False):
+                return
+        raise ValueError("could not fill template without matches (pre-placed pieces force one?)")
 
     def get_board(self):
         return self.grid
