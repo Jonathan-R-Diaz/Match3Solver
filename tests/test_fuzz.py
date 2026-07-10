@@ -1,10 +1,6 @@
 import pytest
 from candy_crush.fuzz import fuzz_game
 
-# KNOWN BUG (backburner): powerup lines (e.g. three adjacent spinners) satisfy
-# find_matches but pop() never clears powerup cells, so crush() loops forever.
-# Seeds 6 and 15 hit it. Fix: exclude POWERUPS from line matching in
-# find_matches (UNMATCHABLE constant is already defined in board.py).
 _HANGING_SEEDS = {}
 
 
