@@ -6,20 +6,20 @@ from candy_crush.board import Board
 def test_rocket_rocket_combo():
     # H at (2,1) + V at (2,2): + fires from (2,2), clearing row 2 and col 2
     b = Board(board_state=[
-        ['$', '$', '$', '$', '$'],
-        ['$', '$', '$', '$', '$'],
-        ['$', 'H', 'V', '$', '$'],
-        ['$', '$', '$', '$', '$'],
-        ['$', '$', '$', '$', '$'],
+        ['r', 'r', 'r', 'r', 'r'],
+        ['r', 'r', 'r', 'r', 'r'],
+        ['r', 'H', 'V', 'r', 'r'],
+        ['r', 'r', 'r', 'r', 'r'],
+        ['r', 'r', 'r', 'r', 'r'],
     ])
     crushed = b.activate_powerup(2, 1, 2, 2)
     assert crushed == 7
     assert b.grid == [
-        ['$', '$', ' ', '$', '$'],
-        ['$', '$', ' ', '$', '$'],
+        ['r', 'r', ' ', 'r', 'r'],
+        ['r', 'r', ' ', 'r', 'r'],
         [' ', ' ', ' ', ' ', ' '],
-        ['$', '$', ' ', '$', '$'],
-        ['$', '$', ' ', '$', '$'],
+        ['r', 'r', ' ', 'r', 'r'],
+        ['r', 'r', ' ', 'r', 'r'],
     ]
 
 
@@ -27,42 +27,42 @@ def test_rocket_rocket_combo():
 def test_tnt_tnt_combo():
     # Two adjacent TNTs at (4,5)+(4,6): radius=4 blast from (4,5)
     # Clears rows 0-8, cols 1-9; col 0, col 10, and rows 9-10 survive
-    b = Board(board_state=[['$'] * 11 for _ in range(11)])
+    b = Board(board_state=[['r'] * 11 for _ in range(11)])
     b.grid[4][5] = 'T'
     b.grid[4][6] = 'T'
     crushed = b.activate_powerup(4, 5, 4, 6)
     assert crushed == 79
     assert b.grid == [
-        ['$', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '$'],
-        ['$', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '$'],
-        ['$', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '$'],
-        ['$', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '$'],
-        ['$', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '$'],
-        ['$', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '$'],
-        ['$', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '$'],
-        ['$', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '$'],
-        ['$', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '$'],
-        ['$', '$', '$', '$', '$', '$', '$', '$', '$', '$', '$'],
-        ['$', '$', '$', '$', '$', '$', '$', '$', '$', '$', '$'],
+        ['r', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'r'],
+        ['r', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'r'],
+        ['r', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'r'],
+        ['r', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'r'],
+        ['r', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'r'],
+        ['r', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'r'],
+        ['r', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'r'],
+        ['r', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'r'],
+        ['r', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'r'],
+        ['r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r'],
+        ['r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r'],
     ]
 
 
 @pytest.mark.board
 def test_rocket_tnt_combo():
     # H at (3,3) + T at (3,4): fires 3 rows (2-4) + 3 cols (3-5) centered on (3,4)
-    b = Board(board_state=[['$'] * 7 for _ in range(7)])
+    b = Board(board_state=[['r'] * 7 for _ in range(7)])
     b.grid[3][3] = 'H'
     b.grid[3][4] = 'T'
     crushed = b.activate_powerup(3, 3, 3, 4)
     assert crushed == 31
     assert b.grid == [
-        ['$', '$', '$', ' ', ' ', ' ', '$'],
-        ['$', '$', '$', ' ', ' ', ' ', '$'],
+        ['r', 'r', 'r', ' ', ' ', ' ', 'r'],
+        ['r', 'r', 'r', ' ', ' ', ' ', 'r'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['$', '$', '$', ' ', ' ', ' ', '$'],
-        ['$', '$', '$', ' ', ' ', ' ', '$'],
+        ['r', 'r', 'r', ' ', ' ', ' ', 'r'],
+        ['r', 'r', 'r', ' ', ' ', ' ', 'r'],
     ]
 
 
@@ -71,28 +71,28 @@ def test_rocket_tnt_chain():
     # H rocket sweeps row 1, hits T at (1,3); TNT blasts rows 0-3 cols 1-5
     # col 0 and col 6 outside TNT radius; row 4 outside TNT radius
     b = Board(board_state=[
-        ['$', '$', '$', '$', '$', '$', '$'],
-        ['H', '$', '$', 'T', '$', '$', '$'],
-        ['$', '$', '$', '$', '$', '$', '$'],
-        ['$', '$', '$', '$', '$', '$', '$'],
-        ['$', '$', '$', '$', '$', '$', '$'],
+        ['r', 'r', 'r', 'r', 'r', 'r', 'r'],
+        ['H', 'r', 'r', 'T', 'r', 'r', 'r'],
+        ['r', 'r', 'r', 'r', 'r', 'r', 'r'],
+        ['r', 'r', 'r', 'r', 'r', 'r', 'r'],
+        ['r', 'r', 'r', 'r', 'r', 'r', 'r'],
     ])
     crushed = b.activate_powerup(1, 0, 1, 0)
     assert crushed == 20
     assert b.grid == [
-        ['$', ' ', ' ', ' ', ' ', ' ', '$'],
+        ['r', ' ', ' ', ' ', ' ', ' ', 'r'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['$', ' ', ' ', ' ', ' ', ' ', '$'],
-        ['$', ' ', ' ', ' ', ' ', ' ', '$'],
-        ['$', '$', '$', '$', '$', '$', '$'],
+        ['r', ' ', ' ', ' ', ' ', ' ', 'r'],
+        ['r', ' ', ' ', ' ', ' ', ' ', 'r'],
+        ['r', 'r', 'r', 'r', 'r', 'r', 'r'],
     ]
 
 
 @pytest.mark.board
 def test_eb_eb_combo():
-    # 15x15 board: '$' everywhere except two adjacent '5' at center
-    # EB+EB sweeps the entire board: all 223 '$' cells cleared directly
-    board = [['$'] * 15 for _ in range(15)]
+    # 15x15 board: 'r' everywhere except two adjacent '5' at center
+    # EB+EB sweeps the entire board: all 223 'r' cells cleared directly
+    board = [['r'] * 15 for _ in range(15)]
     board[7][7] = '5'
     board[7][8] = '5'
     b = Board(board_state=board)
@@ -103,13 +103,13 @@ def test_eb_eb_combo():
 
 @pytest.mark.board
 def test_eb_tnt_combo():
-    # 15x15 board: '@' everywhere (most common), '$' at 4 corners, '5'+'T' at center
-    # EB+TNT replaces all 219 '@' with T and fires each; 4 corner '$' cells get caught
-    board = [['@'] * 15 for _ in range(15)]
-    board[0][0] = '$'
-    board[0][14] = '$'
-    board[14][0] = '$'
-    board[14][14] = '$'
+    # 15x15 board: 'y' everywhere (most common), 'r' at 4 corners, '5'+'T' at center
+    # EB+TNT replaces all 219 'y' with T and fires each; 4 corner 'r' cells get caught
+    board = [['y'] * 15 for _ in range(15)]
+    board[0][0] = 'r'
+    board[0][14] = 'r'
+    board[14][0] = 'r'
+    board[14][14] = 'r'
     board[7][7] = '5'
     board[7][8] = 'T'
     b = Board(board_state=board)
@@ -120,14 +120,14 @@ def test_eb_tnt_combo():
 
 @pytest.mark.board
 def test_eb_rocket_combo():
-    # 15x15 board: '@' everywhere (most common), '$' at 4 corners, '5'+'H' at center
-    # EB+Rocket replaces all 219 '@' with H and fires each; every row gets cleared,
-    # catching the 4 corner '$' cells
-    board = [['@'] * 15 for _ in range(15)]
-    board[0][0] = '$'
-    board[0][14] = '$'
-    board[14][0] = '$'
-    board[14][14] = '$'
+    # 15x15 board: 'y' everywhere (most common), 'r' at 4 corners, '5'+'H' at center
+    # EB+Rocket replaces all 219 'y' with H and fires each; every row gets cleared,
+    # catching the 4 corner 'r' cells
+    board = [['y'] * 15 for _ in range(15)]
+    board[0][0] = 'r'
+    board[0][14] = 'r'
+    board[14][0] = 'r'
+    board[14][14] = 'r'
     board[7][7] = '5'
     board[7][8] = 'H'
     b = Board(board_state=board)

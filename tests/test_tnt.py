@@ -7,25 +7,25 @@ from candy_crush.board import Board
 @pytest.mark.parametrize("start_board, move, junction", [
     # L-shape: junction at bottom-center (swap brings candy into corner)
     ([
-        [' ', '$', ' '],
-        [' ', '$', ' '],
-        [' ', '$', '$'],
-        ['$', ' ', ' '],
+        [' ', 'r', ' '],
+        [' ', 'r', ' '],
+        [' ', 'r', 'r'],
+        ['r', ' ', ' '],
     ], (3, 0, 2, 0), (2, 1)),
 
     # L-shape: junction at bottom-right corner
     ([
-        [' ', ' ', '$'],
-        [' ', ' ', '$'],
-        ['$', '$', ' '],
-        [' ', ' ', '$'],
+        [' ', ' ', 'r'],
+        [' ', ' ', 'r'],
+        ['r', 'r', ' '],
+        [' ', ' ', 'r'],
     ], (2, 2, 3, 2), (2, 2)),
 
     # T-shape: horizontal middle, vertical through center
     ([
-        [' ', '$', ' '],
-        ['$', '$', '$'],
-        [' ', '$', ' '],
+        [' ', 'r', ' '],
+        ['r', 'r', 'r'],
+        [' ', 'r', ' '],
     ], (1, 0, 1, 1), (1, 1)),
 ],
 ids=["L-bottom-center", "L-bottom-right", "T-center"])
@@ -129,9 +129,9 @@ def test_tnt_blast_chains_spinner():
 def test_tnt_clears_3x3():
     # T at center (1,1) of a 3x3 grid
     b = Board(board_state=[
-        ['$', '$', '$'],
-        ['$', 'T', '$'],
-        ['$', '$', '$'],
+        ['r', 'r', 'r'],
+        ['r', 'T', 'r'],
+        ['r', 'r', 'r'],
     ])
     crushed = b.activate_powerup(1, 1, 1, 1)
     assert crushed == 8
@@ -146,16 +146,16 @@ def test_tnt_clears_3x3():
 def test_tnt_partial_board():
     # T at corner: radius=2 blast clamped to board bounds; col 3 is 3 away — outside radius
     b = Board(board_state=[
-        ['T', '$', '$', '$'],
-        ['$', '$', '$', '$'],
-        ['$', '$', '$', '$'],
+        ['T', 'r', 'r', 'r'],
+        ['r', 'r', 'r', 'r'],
+        ['r', 'r', 'r', 'r'],
     ])
     crushed = b.activate_powerup(0, 0, 0, 0)
     assert crushed == 8
     assert b.grid == [
-        [' ', ' ', ' ', '$'],
-        [' ', ' ', ' ', '$'],
-        [' ', ' ', ' ', '$'],
+        [' ', ' ', ' ', 'r'],
+        [' ', ' ', ' ', 'r'],
+        [' ', ' ', ' ', 'r'],
     ]
 
 
@@ -163,16 +163,16 @@ def test_tnt_partial_board():
 def test_tnt_chains_rocket():
     # TNT at (1,1) blast hits H at (1,2); rocket clears all of row 1; col 4 outside TNT radius
     b = Board(board_state=[
-        ['$', '$', '$', '$', '$'],
-        ['$', 'T', 'H', '$', '$'],
-        ['$', '$', '$', '$', '$'],
+        ['r', 'r', 'r', 'r', 'r'],
+        ['r', 'T', 'H', 'r', 'r'],
+        ['r', 'r', 'r', 'r', 'r'],
     ])
     crushed = b.activate_powerup(1, 1, 1, 1)
     assert crushed == 11
     assert b.grid == [
-        [' ', ' ', ' ', ' ', '$'],
+        [' ', ' ', ' ', ' ', 'r'],
         [' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', '$'],
+        [' ', ' ', ' ', ' ', 'r'],
     ]
 
 
@@ -180,28 +180,28 @@ def test_tnt_chains_rocket():
 def test_tnt_chains_tnt():
     # T at (3,2) blast hits T at (3,4) (exactly at radius edge); second TNT fires its own blast.
     # First blast: rows 1-5 cols 0-4. Second blast: rows 1-5 cols 2-6. Union clears rows 1-5 entirely.
-    b = Board(board_state=[['$'] * 7 for _ in range(7)])
+    b = Board(board_state=[['r'] * 7 for _ in range(7)])
     b.grid[3][2] = 'T'
     b.grid[3][4] = 'T'
     crushed = b.activate_powerup(3, 2, 3, 2)
     assert crushed == 33
     assert b.grid == [
-        ['$', '$', '$', '$', '$', '$', '$'],
+        ['r', 'r', 'r', 'r', 'r', 'r', 'r'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['$', '$', '$', '$', '$', '$', '$'],
+        ['r', 'r', 'r', 'r', 'r', 'r', 'r'],
     ]
 
 
 @pytest.mark.board
 def test_tnt_valid_moves():
     b = Board(board_state=[
-        [' ', '@', ' '],
-        ['$', 'T', '&'],
-        [' ', '&', ' '],
+        [' ', 'y', ' '],
+        ['r', 'T', 'g'],
+        [' ', 'g', ' '],
     ])
     moves = b.valid_moves()
     assert (1, 1, "x") in moves

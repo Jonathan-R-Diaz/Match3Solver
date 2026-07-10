@@ -5,11 +5,10 @@ from candy_crush.fuzz import fuzz_game
 # find_matches but pop() never clears powerup cells, so crush() loops forever.
 # Seeds 6 and 15 hit it. Fix: exclude POWERUPS from line matching in
 # find_matches (UNMATCHABLE constant is already defined in board.py).
-_HANGING_SEEDS = {6, 15}
+_HANGING_SEEDS = {}
 
 
 @pytest.mark.gameplay
-@pytest.mark.skip(reason="known crush() infinite loop — see comment above")
 @pytest.mark.parametrize("seed", [
     pytest.param(s, marks=pytest.mark.skip(reason="known crush() infinite loop — see comment above"))
     if s in _HANGING_SEEDS else s

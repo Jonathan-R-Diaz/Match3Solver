@@ -14,11 +14,11 @@ def test_swap_and_match_detection():
     b = Board(rows=3, cols=3, seed=42)
     # Manually create a horizontal match after a swap
     b.grid = [
-        ['$', '#', '&'],
-        ['$', '#', '&'],
-        ['#', '$', '$']
+        ['r', '#', 'g'],
+        ['r', '#', 'g'],
+        ['#', 'r', 'r']
     ]
-    # Swap (2,0) with (2,1) to make last row ['$', '#', '$'] -> no match; instead swap (2,1) and (2,2)
+    # Swap (2,0) with (2,1) to make last row ['r', '#', 'r'] -> no match; instead swap (2,1) and (2,2)
     b.swap(2,1,2,2)
     matches = b.find_matches()
     # No three-in-a-row expected in this configuration
@@ -29,9 +29,9 @@ def test_crush_removes_matches_and_refills():
     b = Board(rows=3, cols=3, seed=0)
     # Force a simple match board: three same in first row
     b.grid = [
-        ['@', '@', '@'],
-        ['#', '$', '&'],
-        ['$', '&', '#']
+        ['y', 'y', 'y'],
+        ['#', 'r', 'g'],
+        ['r', 'g', '#']
     ]
     print("From test:")
     b.print_board()
