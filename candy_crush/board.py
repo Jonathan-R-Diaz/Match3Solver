@@ -470,6 +470,8 @@ class Board:
         for r in range(self.rows):
             count = 1
             for c in range(self.cols - 1):
+                if self.grid[r][c] not in CANDIES:
+                    continue
                 if self.grid[r][c] == self.grid[r][c + 1] and self.grid[r][c] not in (" ", "#", "B"):
                     count += 1
 
@@ -498,6 +500,8 @@ class Board:
         for c in range(self.cols):
             count = 1
             for r in range(self.rows - 1):
+                if self.grid[r][c] not in CANDIES:
+                    continue
                 if self.grid[r][c] == self.grid[r + 1][c] and self.grid[r][c] not in (" ", "#", "B"):
                     count += 1
 
@@ -656,6 +660,7 @@ class Board:
             self.drop()
             if refill:
                 self.fill()
+
 
         return total_crushed
 
