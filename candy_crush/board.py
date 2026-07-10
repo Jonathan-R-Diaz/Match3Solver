@@ -240,7 +240,7 @@ class Board:
         target = self.get_most_candy()
         positions = [(r, c) for r in range(self.rows) for c in range(self.cols) if self.grid[r][c] == target]
         for r, c in positions:
-            self.grid[r][c] = rkt
+            self.grid[r][c] = self.random_rocket()
         for r, c in positions:
             crushed += self.activate_powerup(r, c, r, c)
         return crushed
@@ -357,6 +357,8 @@ class Board:
         most_candy = None
         for row in self.grid:
             for c in row:
+                if c not in CANDIES:
+                    continue   
                 freq[c] += 1
                 if freq[c] > most_freq:
                     most_freq = freq[c]
