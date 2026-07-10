@@ -17,6 +17,8 @@ from typing import List
 CANDIES  = ["r", "b", "g", "y"]
 POWERUPS = frozenset({"5", "V", "H", "T", "S"})
 ROCKETS  = frozenset({"V", "H"})
+# cells that can never be part of a line match (powerups are activated, not matched)
+UNMATCHABLE = frozenset({" ", "#", "B"}) | POWERUPS
 
 class Board:
     
@@ -115,7 +117,6 @@ class Board:
         return violations
 
     def activate_powerup(self, r1: int, c1: int, r2: int, c2: int, protected=None):
-        print("[Debug] Activating powerup", r1, c1, r2, c2)
         self._snap(f"activating {self.grid[r1][c1]} @ ({r1},{c1})")
         if protected is None:
             protected = set()
@@ -159,8 +160,10 @@ class Board:
             self.grid[r1][c1] = " "
             crushed += self.fire_spinner(r1, c1, protected=protected)
         elif r1 == r2 and c1 == c2 and self.grid[r1][c1] == "5":
+            self.grid[r1][c1] = " "
             crushed = self.clear_candies(self.get_most_candy())
         elif self.grid[r1][c1] == "5" or self.grid[r2][c2] == "5":
+            self.grid[r1][c1] = " "
             crushed = self.clear_candies(self.grid[r2][c2])
 
         self.grid[r1][c1] = " "
