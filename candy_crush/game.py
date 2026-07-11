@@ -6,8 +6,9 @@ from collections import defaultdict
 OBSTACLES = { "B" }
 
 class Game:
-    def __init__(self, rows=8, cols=8, max_moves=30, seed=0, board_state: List[List[str]] = None, debug=False, fill_empty=False, freeplay=True):
+    def __init__(self, rows=8, cols=8, max_moves=30, seed=0, board_state: List[List[str]] = None, debug=False, fill_empty=False, freeplay=True, verbose=True):
         self.num_candies = None
+        self.verbose = verbose
         self.max_moves = max_moves
         self.moves_left = max_moves
         self.seed = seed
@@ -20,12 +21,13 @@ class Game:
         self.freeplay = freeplay
 
         if board_state:
-            print("Custom board loaded")
             state = [row.copy() for row in board_state] if fill_empty else board_state
             self.board = Board(board_state=state, seed=seed, debug=debug, fill_empty=fill_empty)
             self.rows = len(board_state)
             self.cols = len(board_state[0])
-            self.board.print_board()
+            if self.verbose:
+                print("Custom board loaded")
+                self.board.print_board()
             self.initial_board = [row.copy() for row in self.board.grid]
         else:
             self.rows = rows
@@ -64,16 +66,16 @@ class Game:
         if self.is_over():
             raise RuntimeError("Game is already over.")
 
-        info = {
-            "score": self.score,
-            "moves_left": self.moves_left,
-            "valid_moves": self.board.valid_moves(),
-        }
-
         #print("[debug] Move:", move)
         r, c, d = move
         if not self.board.is_valid_move(r, c, d):
-            print("That move does not create a match.")
+            if self.verbose:
+                print("That move does not create a match.")
+            info = {
+                "score": self.score,
+                "moves_left": self.moves_left,
+                "valid_moves": self.board.valid_moves(),
+            }
             return self.board.get_board(), 0, self.is_over(), info
 
         self.move_history.append((r, c, d))
@@ -147,11 +149,13 @@ class Game:
         self.moves_left -= 1
 
         total = crushed + power_pops
-        print(f"Crushed {total} candies!")
+        if self.verbose:
+            print(f"Crushed {total} candies!")
 
         win_condition = False
         if not self.freeplay:
-            print("Not freeplay mode: checking win condition...")
+            if self.verbose:
+                print("Not freeplay mode: checking win condition...")
             win_condition = self.board.get_obstacles() == {}
         done = self.is_over() or win_condition
 

@@ -39,6 +39,10 @@ class Board:
             self.cols = len(self.grid[0])
             if fill_empty:
                 self._fill_template()
+                # a deal can come out with zero possible moves (~1 in 1000 on
+                # level 1); reshuffle so every fresh board is playable
+                if not self.has_possible_moves():
+                    self.reshuffle()
         else:
             self.rows = rows
             self.cols = cols
@@ -49,6 +53,8 @@ class Board:
                 ]
                 if not self.find_matches(place_powerups=False):
                     break
+            if not self.has_possible_moves():
+                self.reshuffle()
 
 
     def _fill_template(self):
@@ -736,14 +742,32 @@ class Board:
         return moves
 
 
-    def reshuffle(self):
-        candies = [cell for row in self.grid for cell in row]
-        while True:
+    def reshuffle(self, attempts=200):
+        """Shuffle the candy and powerup cells in place — obstacles, walls and
+        empties stay put — until the board has no matches and at least one
+        possible move. Returns False (board restored) if no playable
+        arrangement was found, e.g. too few candies or all one color."""
+        cells = [
+            (r, c)
+            for r in range(self.rows)
+            for c in range(self.cols)
+            if self.grid[r][c] in CANDIES or self.grid[r][c] in POWERUPS
+        ]
+        candies = [self.grid[r][c] for r, c in cells]
+        original = candies.copy()
+        # a powerup can always be tapped in place, so any matchless
+        # arrangement is playable
+        has_powerup = any(ch in POWERUPS for ch in candies)
+        for _ in range(attempts):
             self.rng.shuffle(candies)
-            for i in range(self.rows * self.cols):
-                self.grid[i // self.cols][i % self.cols] = candies[i]
-            if not self.find_matches() and self.has_possible_moves():
-                return
+            for (r, c), ch in zip(cells, candies):
+                self.grid[r][c] = ch
+            if not self.find_matches(place_powerups=False) and \
+               (has_powerup or self.has_possible_moves()):
+                return True
+        for (r, c), ch in zip(cells, original):
+            self.grid[r][c] = ch
+        return False
 
 
     def random_rocket(self):

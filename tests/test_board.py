@@ -92,3 +92,34 @@ def test_fill_empty_keeps_preplaced_pieces():
     assert b.grid[4][5] == 'r'
 
 
+
+
+def test_moveless_deal_gets_reshuffled():
+    # level-1 seed 1186 deals a stalemate (zero legal moves) — the board must
+    # auto-reshuffle candies into a playable arrangement, leaving obstacles put
+    from candy_crush.levels import get_level
+    tmpl = get_level(1)
+    b = Board(board_state=[row.copy() for row in tmpl], seed=1186, fill_empty=True)
+    assert b.valid_moves()
+    assert b.find_matches(place_powerups=False) == set()
+    for r in range(b.rows):
+        for c in range(b.cols):
+            if tmpl[r][c] in ('#', 'B'):
+                assert b.grid[r][c] == tmpl[r][c]
+
+
+def test_reshuffle_moves_candies_and_powerups_not_obstacles():
+    tmpl = _template()
+    tmpl[3][0] = 'T'
+    b = Board(board_state=[row.copy() for row in tmpl], seed=7, fill_empty=True)
+    before = [row.copy() for row in b.grid]
+    assert b.reshuffle() is True
+    assert b.grid != before                      # something moved
+    for r in range(b.rows):                      # obstacles/walls didn't
+        for c in range(b.cols):
+            if tmpl[r][c] in ('#', 'B'):
+                assert b.grid[r][c] == tmpl[r][c]
+    flat_before = sorted(ch for row in before for ch in row)
+    flat_after = sorted(ch for row in b.grid for ch in row)
+    assert flat_before == flat_after             # same pieces, new positions
+    assert b.valid_moves()
