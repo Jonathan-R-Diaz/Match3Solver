@@ -1,6 +1,11 @@
 .venv
 tests/__pycache__/*
-scripts/
 notes.txt
 .pytest_cache/
 */__pycache__/*
+/.claude
+candy_crush/__pycache__/*
+models/
+.vscode/
+scripts/__pycache__/*
+scripts/
