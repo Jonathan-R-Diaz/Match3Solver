@@ -205,7 +205,8 @@ def test_tnt_valid_moves():
     ])
     moves = b.valid_moves()
     assert (1, 1, "x") in moves
-    assert (1, 1, "w") in moves
-    assert (1, 1, "a") in moves
     assert (1, 1, "s") in moves
     assert (1, 1, "d") in moves
+    # up/left swaps are no longer part of the move set
+    assert (1, 1, "w") not in moves
+    assert (1, 1, "a") not in moves

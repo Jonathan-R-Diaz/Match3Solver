@@ -27,7 +27,7 @@ def main(board: List[List[str]] = None):
     print("=== Terminal Candy Crush ===")
     print("Match 3 or more candies.")
     print("Enter moves as: row col direction")
-    print("Directions: w=up, s=down, a=left, d=right")
+    print("Directions: s=down, d=right, x=fire powerup in place")
     print("Type 'q' to quit.\n")
     if freeplay:
         print("Freeplay mode: no win condition.\n")

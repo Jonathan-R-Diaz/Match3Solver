@@ -29,7 +29,7 @@ def test_game_step_and_is_over():
     # Force a known board with a match so that crush returns >0
     g.board.grid = [
         ['y','y','y'],
-        ['#','r','g'],
+        ['B','r','g'],
         ['b','g','b']
     ]
     board, reward, done, info = g.step((0,0,'d'))
@@ -51,7 +51,7 @@ def test_swap_create_detonate():
     ]
     game = Game(board_state=board, debug=True)
     game.render()
-    r, c, d = (1, 3, "w")
+    r, c, d = (0, 3, "s")
     game.step((r, c, d))
     game.board.print_board()
     candies = set([candy for row in game.board.grid for candy in row])
@@ -65,14 +65,14 @@ def test_swap_create_detonate():
 @pytest.mark.parametrize("start, end", [
     # Start
     ([
-        ['#', "#", "#", " ", "#", "#", '#'],
+        ['B', 'B', 'B', " ", 'B', 'B', 'B'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
     ],
     # End 
     [
-        ['#', '#', '#', 'r', '#', '#', '#'],
+        ['B', 'B', 'B', 'r', 'B', 'B', 'B'],
         [' ', ' ', 'r', 'r', 'r', ' ', ' '],
         [' ', 'r', 'r', 'r', 'r', 'r', ' '],
         ['r', 'r', 'r', 'r', 'r', 'r', 'r']
@@ -80,14 +80,14 @@ def test_swap_create_detonate():
     
     # Start
     ([
-        ['#', "#", " ", "#", "#", "#", '#'],
+        ['B', 'B', " ", 'B', 'B', 'B', 'B'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
     ],
     # End 
     [
-        ['#', '#', 'r', '#', '#', '#', '#'],
+        ['B', 'B', 'r', 'B', 'B', 'B', 'B'],
         [' ', 'r', 'r', 'r', ' ', ' ', ' '],
         ['r', 'r', 'r', 'r', 'r', ' ', ' '],
         ['r', 'r', 'r', 'r', 'r', 'r', ' ']
@@ -95,14 +95,14 @@ def test_swap_create_detonate():
     
     # Start
     ([
-        ['#', " ", "#", "#", "#", "#", '#'],
+        ['B', " ", 'B', 'B', 'B', 'B', 'B'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
     ],
     # End 
     [
-        ['#', 'r', '#', '#', '#', '#', '#'],
+        ['B', 'r', 'B', 'B', 'B', 'B', 'B'],
         ['r', 'r', 'r', ' ', ' ', ' ', ' '],
         ['r', 'r', 'r', 'r', ' ', ' ', ' '],
         ['r', 'r', 'r', 'r', 'r', ' ', ' ']
@@ -110,14 +110,14 @@ def test_swap_create_detonate():
     
     # Start
     ([
-        [' ', "#", "#", "#", "#", "#", '#'],
+        [' ', 'B', 'B', 'B', 'B', 'B', 'B'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
     ],
     # End 
     [
-        ['r', '#', '#', '#', '#', '#', '#'],
+        ['r', 'B', 'B', 'B', 'B', 'B', 'B'],
         ['r', 'r', ' ', ' ', ' ', ' ', ' '],
         ['r', 'r', 'r', ' ', ' ', ' ', ' '],
         ['r', 'r', 'r', 'r', ' ', ' ', ' ']
@@ -125,14 +125,14 @@ def test_swap_create_detonate():
     
     # Start 
     ([
-        ['#', "#", "#", "#", " ", "#", '#'],
+        ['B', 'B', 'B', 'B', " ", 'B', 'B'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
     ],
     # End 
     [
-        ['#', '#', '#', '#', 'r', '#', '#'],
+        ['B', 'B', 'B', 'B', 'r', 'B', 'B'],
         [' ', ' ', ' ', 'r', 'r', 'r', ' '],
         [' ', ' ', 'r', 'r', 'r', 'r', 'r'],
         [' ', 'r', 'r', 'r', 'r', 'r', 'r']
@@ -140,14 +140,14 @@ def test_swap_create_detonate():
     
     # Start 
     ([
-        ['#', "#", "#", "#", "#", " ", '#'],
+        ['B', 'B', 'B', 'B', 'B', " ", 'B'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
     ],
     # End 
     [
-        ['#', '#', '#', '#', '#', 'r', '#'],
+        ['B', 'B', 'B', 'B', 'B', 'r', 'B'],
         [' ', ' ', ' ', ' ', 'r', 'r', 'r'],
         [' ', ' ', ' ', 'r', 'r', 'r', 'r'],
         [' ', ' ', 'r', 'r', 'r', 'r', 'r']
@@ -155,14 +155,14 @@ def test_swap_create_detonate():
     
     # Start 
     ([
-        ['#', "#", "#", "#", "#", "#", ' '],
+        ['B', 'B', 'B', 'B', 'B', 'B', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
     ],
     # End 
     [
-        ['#', '#', '#', '#', '#', '#', 'r'],
+        ['B', 'B', 'B', 'B', 'B', 'B', 'r'],
         [' ', ' ', ' ', ' ', ' ', 'r', 'r'],
         [' ', ' ', ' ', ' ', 'r', 'r', 'r'],
         [' ', ' ', ' ', 'r', 'r', 'r', 'r']
@@ -170,14 +170,14 @@ def test_swap_create_detonate():
     ##
     # Start
     ([
-        ['#', "#", " ", " ", " ", "#", '#'],
+        ['B', 'B', " ", " ", " ", 'B', 'B'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
     ],
     # End 
     [
-        ['#', '#', 'r', 'r', 'r', '#', '#'],
+        ['B', 'B', 'r', 'r', 'r', 'B', 'B'],
         [' ', 'r', 'r', 'r', 'r', 'r', ' '],
         ['r', 'r', 'r', 'r', 'r', 'r', 'r'],
         ['r', 'r', 'r', 'r', 'r', 'r', 'r']
@@ -185,17 +185,45 @@ def test_swap_create_detonate():
     
     # Start
     ([
-        ['#', " ", " ", " ", " ", " ", '#'],
+        ['B', " ", " ", " ", " ", " ", 'B'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' '],
     ],
     # End 
     [
-        ['#', 'r', 'r', 'r', 'r', 'r', '#'],
+        ['B', 'r', 'r', 'r', 'r', 'r', 'B'],
         ['r', 'r', 'r', 'r', 'r', 'r', 'r'],
         ['r', 'r', 'r', 'r', 'r', 'r', 'r'],
         ['r', 'r', 'r', 'r', 'r', 'r', 'r']
+    ]),
+    # Start
+    ([
+        ['B', " ", 'B'],
+        [' ', ' ', ' '],
+        [' ', ' ', ' '],
+        [' ', ' ', 'B'],
+    ],
+    # End 
+    [
+        ['B', 'r', 'B'],
+        ['r', 'r', 'r'],
+        ['r', 'r', 'r'],
+        ['r', 'r', 'B'],
+    ]),
+    # Start
+    ([
+        ['B', "B", 'B'],
+        [' ', ' ', ' '],
+        [' ', ' ', ' '],
+        [' ', ' ', ' '],
+    ],
+    # End 
+    [
+        ['B', 'B', 'B'],
+        [' ', ' ', ' '],
+        [' ', ' ', ' '],
+        [' ', ' ', ' '],
     ]),
 ])
 @pytest.mark.gameplay
@@ -207,12 +235,12 @@ def test_drop_physics(start, end):
 @pytest.mark.gameplay
 def test_game_template_fill_and_reset():
     tmpl = [
-        ['#', ' ', ' ', ' ', ' ', '#'],
+        ['B', ' ', ' ', ' ', ' ', 'B'],
         [' ', ' ', 'B', 'B', ' ', ' '],
         [' ', ' ', 'B', 'B', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' '],
-        ['#', ' ', ' ', ' ', ' ', '#'],
+        ['B', ' ', ' ', ' ', ' ', 'B'],
     ]
     g = Game(board_state=tmpl, seed=3, fill_empty=True, debug=True)
     first_deal = [row.copy() for row in g.board.grid]
@@ -220,7 +248,7 @@ def test_game_template_fill_and_reset():
     # layout preserved, every blank dealt a candy, board is playable
     for r in range(6):
         for c in range(6):
-            if tmpl[r][c] in ('#', 'B'):
+            if tmpl[r][c] in ('B', 'B'):
                 assert g.board.grid[r][c] == tmpl[r][c]
             else:
                 assert g.board.grid[r][c] in ('r', 'b', 'g', 'y')
@@ -231,4 +259,4 @@ def test_game_template_fill_and_reset():
     # reset re-deals the same layout (same seed -> same deal), template untouched
     g.reset()
     assert g.board.grid == first_deal
-    assert all(cell in ('#', 'B', ' ') for row in tmpl for cell in row)
+    assert all(cell in ('B', 'B', ' ') for row in tmpl for cell in row)

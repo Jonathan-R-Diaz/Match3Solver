@@ -304,15 +304,15 @@ def test_spinner_appears_in_valid_moves():
 
 @pytest.mark.gameplay
 def test_swapped_spinner_fires_immediately_and_spares_new_spinner():
-    # Swiping the 'r' at (1,2) left completes an r-square → new spinner at (1,1),
-    # and the old spinner slides to (1,2). The old spinner must fire RIGHT AWAY
-    # (before gravity/cascades), and the freshly spawned spinner must survive.
+    # Swapping the spinner at (1,1) right completes an r-square → new spinner
+    # at (1,1), and the old spinner slides to (1,2). The old spinner must fire
+    # RIGHT AWAY (before gravity/cascades), and the fresh spinner must survive.
     g = Game(board_state=[
         ['r', 'r', 'b'],
         ['r', 'S', 'r'],
         ['g', 'y', 'g'],
     ])
-    g.step((1, 2, 'a'))
+    g.step((1, 1, 'd'))
     assert g.board.grid[1][1] == 'S'   # new spinner untouched by the old one's blast
 
 

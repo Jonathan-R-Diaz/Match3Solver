@@ -490,5 +490,5 @@ def test_rocket_valid_moves(rkt):
         [' ', 'g', ' ']
     ])
     matches = b.valid_moves()
-    expected_matches = [(1,1,"x"),(1,1,"w"),(1,1,"a"),(1,1,"s"),(1,1,"d")]
+    expected_matches = [(1,1,"x"),(1,1,"s"),(1,1,"d")]
     assert matches == expected_matches

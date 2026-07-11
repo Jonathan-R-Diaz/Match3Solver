@@ -689,6 +689,11 @@ class Board:
 
 
     def is_valid_move(self, r, c, direction):
+        # Canonical move set: down/right swaps and in-place taps only.
+        # Every up/left swap is the same pair as a down/right swap from the
+        # other cell, so this halves the action space without losing moves.
+        if direction not in ("s", "d", "x"):
+            return False
         if self.grid[r][c] in (' ', '#', 'B'):
             return False
         if self.grid[r][c] in POWERUPS:
@@ -713,7 +718,7 @@ class Board:
     def has_possible_moves(self):
         for r in range(self.rows):
             for c in range(self.cols):
-                for d in ["w", "a", "s", "d"]:
+                for d in ["s", "d"]:
                     if self.is_valid_move(r, c, d):
                         return True
         return False
@@ -725,7 +730,7 @@ class Board:
             for c in range(self.cols):
                 if self.grid[r][c] in POWERUPS:
                     moves.append((r,c,"x"))
-                for d in ["w", "a", "s", "d"]:
+                for d in ["s", "d"]:
                     if self.is_valid_move(r, c, d):
                         moves.append((r,c,d))
         return moves
