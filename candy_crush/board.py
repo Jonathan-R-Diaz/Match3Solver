@@ -359,19 +359,21 @@ class Board:
 
 
     def get_most_candy(self):
+        """Most frequent candy on the board, or None if no candies remain
+        (an EB fired at a candy-less board fizzles — reachable when EB+EB
+        chains a third EB after the sweep already cleared every candy)."""
         freq = defaultdict(int)
         most_freq = -1
         most_candy = None
         for row in self.grid:
             for c in row:
                 if c not in CANDIES:
-                    continue   
+                    continue
                 freq[c] += 1
                 if freq[c] > most_freq:
                     most_freq = freq[c]
                     most_candy = c
-        
-        assert most_candy, "Most candy is None"
+
         return most_candy
             
 

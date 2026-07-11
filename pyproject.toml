@@ -1,5 +1,6 @@
 [tool.pytest.ini_options]
 markers = [
     "board: test manipulates the board directly",
-    "gameplay: test uses gameplay mechanics to manipulate the board"
+    "gameplay: test uses gameplay mechanics to manipulate the board",
+    "env: test exercises the RL gymnasium wrapper"
 ]

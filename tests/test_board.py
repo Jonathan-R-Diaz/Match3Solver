@@ -153,3 +153,22 @@ def test_powerup_in_corner_is_still_fireable(p):
     assert (2, 2, "x") in moves
     assert (2, 2, "s") not in moves
     assert (2, 2, "d") not in moves
+
+
+def test_get_most_candy_none_when_no_candies():
+    b = Board(board_state=[['B', '#'], [' ', '5']])
+    assert b.get_most_candy() is None
+
+
+def test_eb_eb_combo_chaining_orphan_eb_fizzles():
+    # EB+EB sweeps the grid in scan order, chain-firing powerups it meets.
+    # A third EB positioned after the last candy fires on a candy-less board
+    # and must fizzle, not assert (crashed a training run at update ~150).
+    b = Board(board_state=[
+        ['5', '5', 'r'],
+        ['r', 'r', 'r'],
+        ['r', 'r', '5'],
+    ])
+    crushed = b.activate_powerup(0, 0, 0, 1)
+    assert crushed == 6  # the six candies; powerups themselves aren't counted
+    assert all(ch == ' ' for row in b.grid for ch in row)
