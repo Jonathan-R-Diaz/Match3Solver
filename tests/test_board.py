@@ -123,3 +123,33 @@ def test_reshuffle_moves_candies_and_powerups_not_obstacles():
     flat_after = sorted(ch for row in b.grid for ch in row)
     assert flat_before == flat_after             # same pieces, new positions
     assert b.valid_moves()
+
+
+@pytest.mark.parametrize("p", ["5", "V", "H", "T", "S"])
+def test_powerup_boxed_in_is_still_fireable(p):
+    # a powerup must always be settable-off: even with every neighbor an
+    # obstacle/wall, the tap and the fire-in-place swaps stay valid
+    b = Board(board_state=[
+        ['#', 'B', '#'],
+        ['B', p, 'B'],
+        ['#', 'B', '#'],
+    ])
+    moves = b.valid_moves()
+    assert (1, 1, "x") in moves
+    assert (1, 1, "s") in moves   # neighbor is 'B' → fires in place
+    assert (1, 1, "d") in moves
+
+
+@pytest.mark.parametrize("p", ["5", "V", "H", "T", "S"])
+def test_powerup_in_corner_is_still_fireable(p):
+    # bottom-right corner: 's' and 'd' have no neighbor, so the tap is the
+    # only way to set it off — it must always be there
+    b = Board(board_state=[
+        ['r', 'b', 'g'],
+        ['b', 'g', 'r'],
+        ['g', 'r', p],
+    ])
+    moves = b.valid_moves()
+    assert (2, 2, "x") in moves
+    assert (2, 2, "s") not in moves
+    assert (2, 2, "d") not in moves
