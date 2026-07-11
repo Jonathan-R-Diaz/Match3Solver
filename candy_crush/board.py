@@ -17,6 +17,7 @@ from typing import List
 CANDIES  = ["r", "b", "g", "y"]
 POWERUPS = frozenset({"5", "V", "H", "T", "S"})
 ROCKETS  = frozenset({"V", "H"})
+OBSTACLES = frozenset({"B"})
 # cells that can never be part of a line match (powerups are activated, not matched)
 UNMATCHABLE = frozenset({" ", "#", "B"}) | POWERUPS
 
@@ -66,6 +67,7 @@ class Board:
             if not self.find_matches(place_powerups=False):
                 return
         raise ValueError("could not fill template without matches (pre-placed pieces force one?)")
+
 
     def get_board(self):
         return self.grid
@@ -745,3 +747,13 @@ class Board:
             return "H"
 
         return "V"
+
+
+    def get_obstacles(self):
+        obstacles = defaultdict(int)
+        for row in self.grid:
+            for cell in row:
+                if cell in OBSTACLES:
+                    obstacles[cell] += 1
+
+        return obstacles

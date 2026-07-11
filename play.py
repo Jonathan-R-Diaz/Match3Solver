@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from candy_crush import game
 from candy_crush.game import Game
 from candy_crush.levels import get_level
 from typing import List
@@ -21,6 +22,12 @@ def main(board: List[List[str]] = None):
     else:
         game = Game(seed=args.seed)
 
+    print("=== Terminal Candy Crush ===")
+    print("Match 3 or more candies.")
+    print("Enter moves as: row col direction")
+    print("Directions: w=up, s=down, a=left, d=right")
+    print("Type 'q' to quit.\n")
+    
     while True:
         game.render()
 
@@ -50,11 +57,15 @@ def main(board: List[List[str]] = None):
                                             step_mode=args.slomo)
         #print(f"[debug] obs: {obs} \nreward: {reward} \ndone: {done} \ninfo: {info}")
 
+        if not game.board.get_obstacles():
+            print("Congratulations! You've won the game!")
+            done = True
+            
         if done:
             print("Game over!")
             game.print_move_history()
             break
-
+        
 
 if __name__ == "__main__":
     main()

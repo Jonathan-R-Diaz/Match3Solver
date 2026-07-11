@@ -22,7 +22,7 @@ def _colorize(ch: str, use_color: bool) -> str:
     return _COLOR_MAP.get(ch, '') + ch + _RESET
 
 
-def render_board(board: List[List[str]], score: Optional[int] = None, use_color: bool = True, moves_left = None) -> None:
+def render_board(board: List[List[str]], score: Optional[int] = None, use_color: bool = True, moves_left = None, obstacles = None) -> None:
     """Print the board to stdout."""
     rows = len(board)
     cols = len(board[0]) if rows > 0 else 0
@@ -38,6 +38,17 @@ def render_board(board: List[List[str]], score: Optional[int] = None, use_color:
     
     if moves_left is not None:
         print(f'Moves left: {moves_left}')
+
+
+    if obstacles is not None:
+        print("Obstacles:", end=' ')
+        if len(obstacles) == 0:
+            print("None")
+        else:
+            print()
+        for obstacle, count in obstacles.items():
+            print(f'    {obstacle}: {count}')
+
 
     if score is not None:
         print(f'Score: {score}\n')

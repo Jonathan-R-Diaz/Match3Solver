@@ -1,6 +1,9 @@
 from candy_crush.board import Board, POWERUPS
 from typing import List
+from collections import defaultdict
 
+
+OBSTACLES = { "B" }
 
 class Game:
     def __init__(self, rows=8, cols=8, max_moves=30, seed=0, board_state: List[List[str]] = None, debug=False,
@@ -29,11 +32,6 @@ class Game:
             self.cols = cols
             self.reset()
 
-        print("=== Terminal Candy Crush ===")
-        print("Match 3 or more candies.")
-        print("Enter moves as: row col direction")
-        print("Directions: w=up, s=down, a=left, d=right")
-        print("Type 'q' to quit.\n")
 
     def reset(self):
         if self.template:
@@ -56,6 +54,7 @@ class Game:
         self.initial_board = [row.copy() for row in self.board.grid]
         return self.board.get_board()
 
+
     def step(self, move: tuple, animate: bool = False, step_mode: bool = False):
         """
         move = (r1, c1, d)
@@ -76,7 +75,6 @@ class Game:
         if not self.board.is_valid_move(r, c, d):
             print("That move does not create a match.")
             return self.board.get_board(), 0, self.is_over(), info
-            
 
         self.move_history.append((r, c, d))
 
@@ -151,7 +149,8 @@ class Game:
         total = crushed + power_pops
         print(f"Crushed {total} candies!")
 
-        done = self.is_over()
+        win_condition = self.board.get_obstacles() == {}
+        done = self.is_over() or win_condition
 
         if self.debug:
             violations = self.board.validate()
@@ -172,23 +171,26 @@ class Game:
 
         return self.board.get_board(), total, done, info
 
+
     def is_over(self):
         return (
             self.moves_left <= 0
             or len(self.board.valid_moves()) == 0
-        )
+        )  # win condition: no obstacles left
+
 
     def print_move_history(self):
         """Dump the executed moves as a paste-able list for replaying a game."""
         print(f"\nMove history ({len(self.move_history)} moves):")
         print(self.move_history)
     
+
     def render(self):
         # Use the package renderer if available for colored output, otherwise fall back
         try:
             from candy_crush.render import render_board
 
-            render_board(self.board.get_board(), score=self.score, moves_left=self.moves_left)
+            render_board(self.board.get_board(), score=self.score, moves_left=self.moves_left, obstacles=self.board.get_obstacles())
         except Exception:
             # Fallback to simple text output
             self.board.print_board(self.score)
