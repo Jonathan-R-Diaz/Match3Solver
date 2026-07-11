@@ -14,11 +14,13 @@ def main(board: List[List[str]] = None):
     parser.add_argument('--seed', type=int, default=6, help='RNG seed for the candy deal')
     args = parser.parse_args()
 
+    freeplay = True
     if board is None and args.level is not None:
         board = get_level(args.level)
+        freeplay = False
 
     if board:
-        game = Game(board_state=board, seed=args.seed, fill_empty=True)
+        game = Game(board_state=board, seed=args.seed, fill_empty=True, freeplay=freeplay)
     else:
         game = Game(seed=args.seed)
 
@@ -27,6 +29,8 @@ def main(board: List[List[str]] = None):
     print("Enter moves as: row col direction")
     print("Directions: w=up, s=down, a=left, d=right")
     print("Type 'q' to quit.\n")
+    if freeplay:
+        print("Freeplay mode: no win condition.\n")
     
     while True:
         game.render()
@@ -57,7 +61,7 @@ def main(board: List[List[str]] = None):
                                             step_mode=args.slomo)
         #print(f"[debug] obs: {obs} \nreward: {reward} \ndone: {done} \ninfo: {info}")
 
-        if not game.board.get_obstacles():
+        if not freeplay and not game.board.get_obstacles():
             print("Congratulations! You've won the game!")
             done = True
             

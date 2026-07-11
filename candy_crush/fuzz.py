@@ -18,7 +18,7 @@ def fuzz_game(seed: int, max_moves: int = 40, rows: int = 8, cols: int = 8):
     buf = io.StringIO()
     try:
         with contextlib.redirect_stdout(buf):
-            game = Game(rows=rows, cols=cols, max_moves=max_moves, seed=seed, debug=True)
+            game = Game(rows=rows, cols=cols, max_moves=max_moves, seed=seed, debug=True, freeplay=True)
             while not game.is_over():
                 moves = game.board.valid_moves()
                 if not moves:

@@ -6,8 +6,7 @@ from collections import defaultdict
 OBSTACLES = { "B" }
 
 class Game:
-    def __init__(self, rows=8, cols=8, max_moves=30, seed=0, board_state: List[List[str]] = None, debug=False,
-                 fill_empty=False):
+    def __init__(self, rows=8, cols=8, max_moves=30, seed=0, board_state: List[List[str]] = None, debug=False, fill_empty=False, freeplay=True):
         self.num_candies = None
         self.max_moves = max_moves
         self.moves_left = max_moves
@@ -18,6 +17,7 @@ class Game:
         # level template: layout whose ' ' cells get dealt random candies
         self.template = board_state if fill_empty else None
         self.fill_empty = fill_empty
+        self.freeplay = freeplay
 
         if board_state:
             print("Custom board loaded")
@@ -149,7 +149,10 @@ class Game:
         total = crushed + power_pops
         print(f"Crushed {total} candies!")
 
-        win_condition = self.board.get_obstacles() == {}
+        win_condition = False
+        if not self.freeplay:
+            print("Not freeplay mode: checking win condition...")
+            win_condition = self.board.get_obstacles() == {}
         done = self.is_over() or win_condition
 
         if self.debug:
