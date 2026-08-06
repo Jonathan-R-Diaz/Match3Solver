@@ -9,6 +9,8 @@ Classification is pure HSV: mask background, measure median hue of foreground.
 Hue boundaries derived from measured game samples:
   red H≈1, box H≈14, yellow H≈22, green H≈61, blue H≈107
 """
+import os
+
 import cv2
 import numpy as np
 
@@ -42,6 +44,82 @@ _HUE_CLASSES = [
 ]
 
 
+# --- powerup templates -------------------------------------------------------
+# Powerup sprites (rockets, TNT, propeller, light ball) are multicolored, so
+# hue alone can't name them. They're matched against real cell crops harvested
+# from this device's own screenshots (scripts/add_template.py) — never against
+# downloaded icons, which differ in resolution and style.
+#
+# vision/templates/<symbol>.png (or <symbol>_2.png, ... for animation frames);
+# filenames use v/h/t/s/5 lowercased where needed since 'V.png' and 'v.png'
+# collide on case-insensitive filesystems — the symbol is the first character,
+# uppercased unless it's '5'.
+
+_TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
+_TEMPLATE_SIZE = 64          # cells are resized to this square before matching
+# Acceptance score, measured on real frames: an animated sprite (light ball
+# and propeller rotate continuously) can sag to ~0.32 against a template from
+# a different rotation phase, while candies/boxes never exceed ~0.15 against
+# any powerup template. 0.30 sits in that gap; multiple templates per symbol
+# (rotation phases) keep typical true scores far above it.
+_TEMPLATE_THRESHOLD = 0.30
+_TEMPLATE_MARGIN = 0.15      # fraction trimmed off each cell edge before
+                             # matching — drops selection-highlight rings and
+                             # grid borders, keeps the sprite
+_templates_cache = None
+
+
+def _center(img_bgr: np.ndarray) -> np.ndarray:
+    h, w = img_bgr.shape[:2]
+    mh, mw = int(h * _TEMPLATE_MARGIN), int(w * _TEMPLATE_MARGIN)
+    return img_bgr[mh:h - mh, mw:w - mw]
+
+
+def _load_templates():
+    global _templates_cache
+    if _templates_cache is None:
+        _templates_cache = []
+        if os.path.isdir(_TEMPLATE_DIR):
+            for name in sorted(os.listdir(_TEMPLATE_DIR)):
+                if not name.lower().endswith(".png"):
+                    continue
+                symbol = name[0] if name[0] == "5" else name[0].upper()
+                img = cv2.imread(os.path.join(_TEMPLATE_DIR, name))
+                if img is None:
+                    continue
+                tmpl = cv2.resize(_center(img), (_TEMPLATE_SIZE,) * 2)
+                # a near-uniform template (someone cropped an empty cell)
+                # would match EVERYTHING at ~1.0 — refuse to load it
+                if float(cv2.cvtColor(tmpl, cv2.COLOR_BGR2GRAY).std()) < 10:
+                    print(f"warning: skipping flat template {name} — it "
+                          "looks like an empty cell, re-harvest it")
+                    continue
+                _templates_cache.append((symbol, tmpl))
+    return _templates_cache
+
+
+def reload_templates():
+    """Forget the cached templates (call after adding one)."""
+    global _templates_cache
+    _templates_cache = None
+
+
+def _match_template(img_bgr: np.ndarray):
+    """(symbol, score) of the best template match for a cell crop."""
+    best_sym, best_score = None, -1.0
+    cell = cv2.resize(_center(img_bgr), (_TEMPLATE_SIZE,) * 2)
+    # a flat cell (empty board hole) makes normalized correlation unstable —
+    # skip matching and let the empty-cell check name it
+    if float(cv2.cvtColor(cell, cv2.COLOR_BGR2GRAY).std()) < 10:
+        return None, -1.0
+    for symbol, tmpl in _load_templates():
+        score = float(cv2.matchTemplate(cell, tmpl,
+                                        cv2.TM_CCOEFF_NORMED)[0, 0])
+        if score > best_score:
+            best_sym, best_score = symbol, score
+    return best_sym, best_score
+
+
 def classify_cell(img_bgr: np.ndarray) -> str:
     """
     Return the Board symbol for a single cropped cell image.
@@ -49,8 +127,14 @@ def classify_cell(img_bgr: np.ndarray) -> str:
     Args:
         img_bgr: BGR image of one cell (any size).
     Returns:
-        One of '$', '%', '&', '@', 'B', ' '.
+        A candy symbol, powerup symbol, 'B', or ' '.
     """
+    # powerups first: their sprites span several hues, so they'd otherwise
+    # fall into whichever candy bucket dominates
+    sym, score = _match_template(img_bgr)
+    if sym is not None and score >= _TEMPLATE_THRESHOLD:
+        return sym
+
     h, w = img_bgr.shape[:2]
     # Center 60% crop to avoid background bleed from cell edges
     crop = img_bgr[int(h * 0.2): int(h * 0.8),
@@ -111,7 +195,7 @@ if __name__ == "__main__":
     import sys
     from vision.detect_grid import detect
 
-    path = sys.argv[1] if len(sys.argv) > 1 else "vision/screenshots/level_001.png"
+    path = sys.argv[1] if len(sys.argv) > 1 else "vision/levels/level_001.png"
     img = cv2.imread(path)
     (x1, y1, x2, y2, rows, cols) = detect(img)
     grid = classify_board(img, x1, y1, x2, y2, rows, cols)

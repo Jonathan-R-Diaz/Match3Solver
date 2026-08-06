@@ -137,7 +137,7 @@ def detect(
 
 if __name__ == "__main__":
     import sys
-    path = sys.argv[1] if len(sys.argv) > 1 else "vision/screenshots/level_001.png"
+    path = sys.argv[1] if len(sys.argv) > 1 else "vision/levels/level_001.png"
     img = cv2.imread(path)
     if img is None:
         raise SystemExit(f"Could not load {path}")
