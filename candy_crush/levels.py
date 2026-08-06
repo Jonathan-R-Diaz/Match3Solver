@@ -18,6 +18,32 @@ LEVELS = {
         "BBBBBBBBB",
         "BBBBBBBBB",
     ],
+    # vision/levels/level_002.png — 54 boxes, 30 moves; candies confined to
+    # a 3-wide center channel, boxes reachable only from its edges
+    2: [
+        "BBB...BBB",
+        "BBB...BBB",
+        "BBB...BBB",
+        "BBB...BBB",
+        "BBB...BBB",
+        "BBB...BBB",
+        "BBB...BBB",
+        "BBB...BBB",
+        "BBB...BBB",
+    ],
+    # vision/levels/level_003.png — 45 boxes, 32 moves; diagonal staircase
+    # (box wherever col <= row), candies in the upper-right triangle
+    3: [
+        "B........",
+        "BB.......",
+        "BBB......",
+        "BBBB.....",
+        "BBBBB....",
+        "BBBBBB...",
+        "BBBBBBB..",
+        "BBBBBBBB.",
+        "BBBBBBBBB",
+    ],
 }
 
 

@@ -17,9 +17,11 @@ from typing import List
 CANDIES  = ["r", "b", "g", "y"]
 POWERUPS = frozenset({"5", "V", "H", "T", "S"})
 ROCKETS  = frozenset({"V", "H"})
-OBSTACLES = frozenset({"B"})
+# 'B' = box (one hit), 'C' = crate (two hits: cracks into a box first)
+OBSTACLES = frozenset({"B", "C"})
+OBSTACLE_HP = {"B": 1, "C": 2}
 # cells that can never be part of a line match (powerups are activated, not matched)
-UNMATCHABLE = frozenset({" ", "#", "B"}) | POWERUPS
+UNMATCHABLE = frozenset({" ", "#"}) | OBSTACLES | POWERUPS
 
 class Board:
     
@@ -127,7 +129,8 @@ class Board:
         hold matches and floating pieces.
         """
         violations = []
-        alphabet = set(CANDIES) | POWERUPS | {' ', '#', 'B'}
+        alphabet = set(CANDIES) | POWERUPS | OBSTACLES | {' ', '#'}
+        anchored = OBSTACLES | {' ', '#'}  # cells that legitimately sit still
 
         for r in range(self.rows):
             for c in range(self.cols):
@@ -135,7 +138,7 @@ class Board:
                 if cell not in alphabet:
                     violations.append(f"unknown symbol {cell!r} at ({r},{c})")
                 # a candy/powerup resting directly on empty space is floating
-                if cell in alphabet and cell not in (' ', '#', 'B') \
+                if cell in alphabet and cell not in anchored \
                         and r + 1 < self.rows and self.grid[r + 1][c] == ' ':
                     violations.append(f"floating piece {cell!r} at ({r},{c})")
 
@@ -345,18 +348,26 @@ class Board:
                 if chain:
                     crushed += self.activate_powerup(nr, nc, nr, nc)
                 # chain=False: skip powerups entirely — they stay on the board
+            elif self.grid[nr][nc] in OBSTACLES:
+                crushed += self.damage_obstacle(nr, nc)
             elif self.grid[nr][nc] not in (' ', '#'):
                 self.grid[nr][nc] = ' '
                 crushed += 1
         obstacles = [(rr, cc) for rr in range(self.rows) for cc in range(self.cols)
-                     if self.grid[rr][cc] == 'B']
+                     if self.grid[rr][cc] in OBSTACLES]
         if obstacles:
             rr, cc = self.rng.choice(obstacles)
-            self.grid[rr][cc] = ' '
-            crushed += 1
+            crushed += self.damage_obstacle(rr, cc)
         self._snap("spinner fired")
         return crushed
 
+
+    def damage_obstacle(self, r, c):
+        """Land one hit on an obstacle cell: a crate cracks into a box, a
+        box pops. Every damage path (match adjacency, blasts, spinners) goes
+        through here. Returns 1 — the hit that landed."""
+        self.grid[r][c] = "B" if self.grid[r][c] == "C" else " "
+        return 1
 
     def get_most_candy(self):
         """Most frequent candy on the board, or None if no candies remain
@@ -403,6 +414,8 @@ class Board:
                     continue
                 if self.grid[nr][nc] in POWERUPS:
                     crushed += self.activate_powerup(nr, nc, nr, nc)
+                elif self.grid[nr][nc] in OBSTACLES:
+                    crushed += self.damage_obstacle(nr, nc)
                 elif self.grid[nr][nc] not in (' ', '#'):
                     self.grid[nr][nc] = ' '
                     crushed += 1
@@ -600,15 +613,16 @@ class Board:
             if self.grid[r][c] not in POWERUPS:
                 self.grid[r][c] = " "
 
-        # Each matched cell hits adjacent boxes
+        # Each matched cell hits adjacent obstacles (one hit per obstacle
+        # per crush, however many matched cells touch it)
         box_pops = set()
         for r, c in matches:
             for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1)):
                 nr, nc = r + dr, c + dc
-                if self.in_bounds(nr, nc) and self.grid[nr][nc] == "B":
+                if self.in_bounds(nr, nc) and self.grid[nr][nc] in OBSTACLES:
                     box_pops.add((nr, nc))
         for r, c in box_pops:
-            self.grid[r][c] = " "
+            self.damage_obstacle(r, c)
 
         self._snap("match pop")
         return len(matches) + len(box_pops)

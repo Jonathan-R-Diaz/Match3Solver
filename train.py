@@ -9,8 +9,9 @@ returns-to-go, and take one gradient step on
     entropy bonus                                (keeps exploration alive)
 
 Logs a random-masked-policy baseline first — training only counts if the
-learned policy beats it. Checkpoints land in models/reinforce_level<N>.pt
-(watch one with scripts/watch.py).
+learned policy beats it. Checkpoints land in models/reinforce_level<N>.pt and
+every run auto-resumes from there, so repeated runs keep learning; pass
+--fresh to start a new net (watch a checkpoint with scripts/watch.py).
 """
 import os
 from argparse import ArgumentParser
@@ -75,25 +76,34 @@ def returns_to_go(rewards, gamma):
 def main():
     parser = ArgumentParser()
     parser.add_argument('--level', type=int, default=1)
-    parser.add_argument('--updates', type=int, default=300)
+    parser.add_argument('--updates', type=int, default=0,
+                        help='gradient steps to run; 0 = forever (Ctrl-C to '
+                             'stop — progress is checkpointed either way)')
     parser.add_argument('--batch-episodes', type=int, default=16,
                         help='episodes collected per gradient step')
     parser.add_argument('--moves', type=int, default=30, help='max moves per episode')
     parser.add_argument('--lr', type=float, default=3e-4)
     parser.add_argument('--gamma', type=float, default=0.99)
     parser.add_argument('--entropy-coef', type=float, default=0.01)
+    parser.add_argument('--powerup-coef', type=float, default=0.5,
+                        help='weight on the powerup-creation shaping term '
+                             '(potential-based, 0 disables)')
     parser.add_argument('--value-coef', type=float, default=0.5)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--eval-episodes', type=int, default=50)
     parser.add_argument('--log-every', type=int, default=10)
     parser.add_argument('--out', default='models')
-    parser.add_argument('--resume', action='store_true',
-                        help="continue from this level's existing checkpoint")
+    parser.add_argument('--fresh', action='store_true',
+                        help="start a new net instead of auto-resuming this "
+                             "level's existing checkpoint")
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)
-    env = CandyCrushEnv(level=args.level, max_moves=args.moves, seed=args.seed)
-    eval_env = CandyCrushEnv(level=args.level, max_moves=args.moves, seed=1_000_000)
+    env = CandyCrushEnv(level=args.level, max_moves=args.moves, seed=args.seed,
+                        powerup_coef=args.powerup_coef, gamma=args.gamma)
+    # eval reward stays unshaped so runs with different coefs are comparable
+    eval_env = CandyCrushEnv(level=args.level, max_moves=args.moves,
+                             seed=1_000_000, powerup_coef=0.0)
 
     rng = np.random.default_rng(args.seed)
 
@@ -111,19 +121,29 @@ def main():
     path = os.path.join(args.out, f"reinforce_level{args.level}.pt")
 
     start_update = 0
-    if args.resume and os.path.exists(path):
+    if not args.fresh and os.path.exists(path):
         ckpt = torch.load(path, weights_only=False)
-        net.load_state_dict(ckpt["state_dict"])
-        if "opt_state" in ckpt:
-            opt.load_state_dict(ckpt["opt_state"])
-        start_update = ckpt.get("update", 0)
-        # fresh deals and a fresh sampling stream — otherwise the resumed run
-        # replays exactly the episodes the checkpoint already trained on
-        env._episode = start_update * args.batch_episodes
-        torch.manual_seed(args.seed + start_update)
-        print(f"resumed {path} at update {start_update}")
+        if ckpt.get("arch", "mlp") != net.arch:
+            backup = f"{path}.{ckpt.get('arch', 'mlp')}-bak"
+            os.replace(path, backup)
+            print(f"checkpoint {path} is a different architecture "
+                  f"({ckpt.get('arch', 'mlp')} vs {net.arch}) — moved it to "
+                  f"{backup} (still watchable) and starting fresh")
+        else:
+            net.load_state_dict(ckpt["state_dict"])
+            if "opt_state" in ckpt:
+                opt.load_state_dict(ckpt["opt_state"])
+            start_update = ckpt.get("update", 0)
+            # fresh deals and a fresh sampling stream — otherwise the resumed
+            # run replays exactly the episodes the checkpoint already saw
+            env._episode = start_update * args.batch_episodes
+            torch.manual_seed(args.seed + start_update)
+            print(f"resumed {path} at update {start_update}")
 
-    for update in range(start_update + 1, start_update + args.updates + 1):
+    update = start_update
+    try:
+      while args.updates <= 0 or update < start_update + args.updates:
+        update += 1
         batch_obs, batch_mask, batch_act, batch_ret = [], [], [], []
         cleared_stats, win_stats = [], []
         for _ in range(args.batch_episodes):
@@ -165,9 +185,10 @@ def main():
                   f"vloss {value_loss.item():.1f}")
             save_checkpoint(net, path, level=args.level, update=update,
                             opt_state=opt.state_dict())
+    except KeyboardInterrupt:
+        print(f"\nstopped at update {update}")
 
-    save_checkpoint(net, path, level=args.level,
-                    update=start_update + args.updates,
+    save_checkpoint(net, path, level=args.level, update=update,
                     opt_state=opt.state_dict())
     print(f"saved {path}")
 

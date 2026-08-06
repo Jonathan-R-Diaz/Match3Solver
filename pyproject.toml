@@ -2,5 +2,6 @@
 markers = [
     "board: test manipulates the board directly",
     "gameplay: test uses gameplay mechanics to manipulate the board",
-    "env: test exercises the RL gymnasium wrapper"
+    "env: test exercises the RL gymnasium wrapper",
+    "vision: test exercises the screenshot-to-board pipeline"
 ]

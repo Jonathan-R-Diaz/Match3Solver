@@ -9,3 +9,7 @@ models/
 .vscode/
 scripts/__pycache__/*
 scripts/
+vision/screenshots/
+vision/cells
+vision/templates
+vision/levels

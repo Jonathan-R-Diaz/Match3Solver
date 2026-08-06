@@ -16,19 +16,29 @@ PLANE_INDEX = {ch: i for i, ch in enumerate(PLANES)}
 # Canonical move set (matches Board.is_valid_move): down, right, tap-in-place.
 DIRS = ("s", "d", "x")
 
+# Potential weights for the powerup-creation shaping term. Ordered by punch:
+# a color bomb reshapes the board more than a rocket does.
+POWERUP_WEIGHTS = {"5": 3.0, "T": 2.0, "S": 2.0, "V": 1.0, "H": 1.0}
+
 
 class CandyCrushEnv(gym.Env):
     """Gymnasium wrapper: clear every obstacle on a level to win.
 
     Reward is the number of obstacles removed by the move (dense), plus
-    win_bonus for clearing the board. Exposes action_masks() so MaskablePPO
-    never samples an illegal move.
+    win_bonus for clearing the board, plus a potential-based shaping term
+    (Ng et al. 1999) that pays gamma*phi(s') - phi(s) where phi is the
+    weighted count of powerups sitting on the board. The difference form
+    telescopes to ~zero over an episode (terminal phi is zero), so the
+    optimal policy is unchanged — it just hands out credit the moment a
+    move creates a powerup instead of waiting for the powerup to pay off.
+    Exposes action_masks() so the policy never samples an illegal move.
     """
 
     metadata = {"render_modes": ["human"]}
 
     def __init__(self, level=1, max_moves=30, seed=0,
                  box_reward=1.0, win_bonus=10.0,
+                 powerup_coef=0.5, gamma=0.99,
                  animate=False, step_mode=False):
         super().__init__()
         self.template = get_level(level)
@@ -38,6 +48,9 @@ class CandyCrushEnv(gym.Env):
         self.base_seed = seed
         self.box_reward = box_reward
         self.win_bonus = win_bonus
+        self.powerup_coef = powerup_coef
+        # must match the learner's discount for the shaping to telescope
+        self.gamma = gamma
         # terminal animation of crushes/cascades (watching only — leave off
         # for training, frame recording costs time)
         self.animate = animate
@@ -85,6 +98,7 @@ class CandyCrushEnv(gym.Env):
     def step(self, action):
         move = self.decode_action(action)
         before = self._obstacle_count()
+        phi_before = self._powerup_potential()
         self.game.step(move, animate=self.animate, step_mode=self.step_mode)
         after = self._obstacle_count()
 
@@ -97,6 +111,10 @@ class CandyCrushEnv(gym.Env):
 
         terminated = won or stalemate
         truncated = not terminated and self.game.moves_left <= 0
+        # terminal potential is zero: a powerup hoarded into the horizon
+        # earns nothing, only creating-then-spending pays
+        phi_after = 0.0 if (terminated or truncated) else self._powerup_potential()
+        reward += self.powerup_coef * (self.gamma * phi_after - phi_before)
         return self._obs(), reward, terminated, truncated, self._info(won=won)
 
     def action_masks(self):
@@ -112,6 +130,10 @@ class CandyCrushEnv(gym.Env):
 
     def _obstacle_count(self):
         return sum(self.game.board.get_obstacles().values())
+
+    def _powerup_potential(self):
+        return sum(POWERUP_WEIGHTS.get(ch, 0.0)
+                   for row in self.game.board.grid for ch in row)
 
     def _obs(self):
         obs = np.zeros((len(PLANES), self.rows, self.cols), dtype=np.float32)
