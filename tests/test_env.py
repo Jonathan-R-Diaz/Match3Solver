@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from rl.env import CandyCrushEnv, DIRS, PLANES, PLANE_INDEX
-from candy_crush.levels import get_level
+from engine.levels import get_level
 
 
 @pytest.fixture

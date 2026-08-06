@@ -1,5 +1,5 @@
 import pytest
-from candy_crush.fuzz import fuzz_game
+from engine.fuzz import fuzz_game
 
 _HANGING_SEEDS = {}
 

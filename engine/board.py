@@ -1,4 +1,4 @@
-# terminal_candy_crush.py
+# terminal_engine.py
 # A simple playable Candy Crush-style game for the terminal.
 # Controls:
 #   Enter moves as: row col direction

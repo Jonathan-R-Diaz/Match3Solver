@@ -1,5 +1,5 @@
 import pytest
-from candy_crush.game import Game
+from engine.game import Game
 
 
 def test_game_reset_and_initial_state():

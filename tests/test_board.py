@@ -1,5 +1,5 @@
 import pytest
-from candy_crush.board import Board
+from engine.board import Board
 
 
 def test_board_initial_no_matches():
@@ -97,7 +97,7 @@ def test_fill_empty_keeps_preplaced_pieces():
 def test_moveless_deal_gets_reshuffled():
     # level-1 seed 1186 deals a stalemate (zero legal moves) — the board must
     # auto-reshuffle candies into a playable arrangement, leaving obstacles put
-    from candy_crush.levels import get_level
+    from engine.levels import get_level
     tmpl = get_level(1)
     b = Board(board_state=[row.copy() for row in tmpl], seed=1186, fill_empty=True)
     assert b.valid_moves()

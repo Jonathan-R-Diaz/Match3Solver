@@ -4,9 +4,9 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
-from candy_crush.board import CANDIES
-from candy_crush.game import Game
-from candy_crush.levels import get_level
+from engine.board import CANDIES
+from engine.game import Game
+from engine.levels import get_level
 
 # One observation plane per symbol. Order is fixed — changing it invalidates
 # any trained checkpoint.

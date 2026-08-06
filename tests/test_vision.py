@@ -3,8 +3,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from candy_crush.board import Board
-from candy_crush.levels import get_level
+from engine.board import Board
+from engine.levels import get_level
 from vision import (AutoBoardReader, BoardReader, GridGeometry, PolicyAgent,
                     UnknownCellError, render_board, synth_palette)
 from vision.executor import move_endpoints

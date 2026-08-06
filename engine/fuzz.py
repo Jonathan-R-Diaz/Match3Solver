@@ -8,7 +8,7 @@ import contextlib
 import io
 import random
 
-from candy_crush.game import Game
+from engine.game import Game
 
 
 def fuzz_game(seed: int, max_moves: int = 40, rows: int = 8, cols: int = 8):

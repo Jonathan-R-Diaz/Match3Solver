@@ -1,5 +1,5 @@
 import pytest
-from candy_crush.board import Board
+from engine.board import Board
 
 
 # --- Spawn tests ---
@@ -87,7 +87,7 @@ def test_plain_four_run_still_spawns_rocket():
 
 @pytest.mark.gameplay
 def test_tnt_swap_creating_tnt_fires_old_and_keeps_new():
-    from candy_crush.game import Game
+    from engine.game import Game
     # Selecting the T at (3,2) and swiping down swaps it with the 'b' at (4,2).
     # The 'b' lands at (3,2), completing col-2 and row-3 runs → new TNT at (3,2).
     # The old TNT must fire from (4,2) immediately, sparing the new TNT.

@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 
-from candy_crush.board import Board
+from engine.board import Board
 from rl.env import DIRS, PLANES, PLANE_INDEX
 from rl.policy import load_checkpoint
 

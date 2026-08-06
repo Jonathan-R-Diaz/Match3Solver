@@ -1,4 +1,4 @@
-from candy_crush.board import Board, POWERUPS
+from engine.board import Board, POWERUPS
 from typing import List
 from collections import defaultdict
 
@@ -138,7 +138,7 @@ class Game:
             self.board._snap("final")
             self.board.record_frames = False
             try:
-                from candy_crush.render import animate_frames
+                from engine.render import animate_frames
 
                 animate_frames(self.board.frames, step_mode=step_mode)
             except Exception:
@@ -195,7 +195,7 @@ class Game:
     def render(self):
         # Use the package renderer if available for colored output, otherwise fall back
         try:
-            from candy_crush.render import render_board
+            from engine.render import render_board
 
             render_board(self.board.get_board(), score=self.score, moves_left=self.moves_left, obstacles=self.board.get_obstacles())
         except Exception:

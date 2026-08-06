@@ -4,7 +4,7 @@ notes.txt
 .pytest_cache/
 */__pycache__/*
 /.claude
-candy_crush/__pycache__/*
+engine/__pycache__/*
 models/
 .vscode/
 scripts/__pycache__/*

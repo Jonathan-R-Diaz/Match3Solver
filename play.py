@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
-from candy_crush import game
-from candy_crush.game import Game
-from candy_crush.levels import get_level
+from engine import game
+from engine.game import Game
+from engine.levels import get_level
 from typing import List
 
 
@@ -10,7 +10,7 @@ def main(board: List[List[str]] = None):
     parser.add_argument('--animate', action='store_true', help='Enable terminal animation for crushes')
     parser.add_argument('--slomo', action='store_true',
                         help='Step through labeled frames one Enter-press at a time (implies --animate)')
-    parser.add_argument('--level', type=int, help='Play a level from candy_crush/levels.py')
+    parser.add_argument('--level', type=int, help='Play a level from engine/levels.py')
     parser.add_argument('--seed', type=int, default=6, help='RNG seed for the candy deal')
     args = parser.parse_args()
 

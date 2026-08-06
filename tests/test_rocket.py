@@ -1,5 +1,5 @@
 import pytest
-from candy_crush.board import Board
+from engine.board import Board
 
 
 @pytest.mark.parametrize("start_board, expected_board, move", 

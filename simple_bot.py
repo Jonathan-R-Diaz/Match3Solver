@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from candy_crush.game import Game
+from engine.game import Game
 
 
 def most_pop(game, moves):

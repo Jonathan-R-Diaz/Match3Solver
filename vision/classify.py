@@ -1,7 +1,7 @@
 """
 Per-cell classifier for Royal Kingdom board cells.
 
-Maps a cropped cell image → one of the Board symbols defined in candy_crush.board.
+Maps a cropped cell image → one of the Board symbols defined in engine.board.
 Candy order in CANDIES is [red, blue, green, yellow].
 Non-candy symbols: 'B' (box obstacle), ' ' (empty).
 
@@ -14,7 +14,7 @@ import os
 import cv2
 import numpy as np
 
-from candy_crush.board import CANDIES
+from engine.board import CANDIES
 
 # CANDIES = ["r", "b", "g", "y"] — symbols must match board.py
 _RED, _BLUE, _GREEN, _YELLOW = CANDIES

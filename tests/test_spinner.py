@@ -1,6 +1,6 @@
 import pytest
-from candy_crush.board import Board
-from candy_crush.game import Game
+from engine.board import Board
+from engine.game import Game
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────

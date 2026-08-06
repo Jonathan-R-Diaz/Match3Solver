@@ -1,5 +1,5 @@
 import pytest
-from candy_crush.board import Board
+from engine.board import Board
 
 
 def test_create_electro_on_board():

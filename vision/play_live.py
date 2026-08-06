@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from candy_crush.render import _COLOR_MAP as ENGINE_COLORS
+from engine.render import _COLOR_MAP as ENGINE_COLORS
 from vision import (AdbCapture, AdbExecutor, AutoBoardReader, FileCapture,
                     PolicyAgent, SuggestExecutor, UnknownCellError)
 from vision.executor import DESCRIBE
