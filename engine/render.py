@@ -28,13 +28,13 @@ def render_board(board: List[List[str]], score: Optional[int] = None, use_color:
     cols = len(board[0]) if rows > 0 else 0
 
     print('\n   ' + ' '.join(str(c) for c in range(cols)))
-    print('  +' + '--' * cols + '+')
+    print('  +' + '-' * (2*cols-1) + '+')
 
     for r in range(rows):
         row_chars = [_colorize(board[r][c], use_color) for c in range(cols)]
         print(f"{r} |" + ' '.join(row_chars) + '|')
 
-    print('  +' + '--' * cols + '+')
+    print('  +' + '-' * (2*cols-1) + '+')
     
     if moves_left is not None:
         print(f'Moves left: {moves_left}')
