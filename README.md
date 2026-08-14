@@ -55,7 +55,7 @@ the policy only ever sees legal moves, and a reward built around the actual
 objective (obstacles cleared, not candies popped). `policy.py` is a small
 CNN policy/value network.
 
-🧠 **[`train.py`](train.py)** — hand-rolled REINFORCE-with-baseline in PyTorch (no
+🧠 **[`rl/train.py`](rl/train.py)** — hand-rolled REINFORCE-with-baseline in PyTorch (no
 stable-baselines3 or other RL library). Trains until you stop it, auto-
 resumes from checkpoints, and logs a random-policy baseline so progress is
 always measured against something.
@@ -87,7 +87,7 @@ python play.py
 python simple_bot.py
 
 # train an agent (Ctrl-C to stop; it checkpoints as it goes)
-python train.py --moves 15
+python rl/train.py --moves 15
 
 # watch a trained checkpoint play
 python scripts/watch.py models/reinforce_level1.pt
@@ -101,7 +101,7 @@ python vision/play_live.py
 
 <br>
 
-`train.py`:
+`rl/train.py`:
 
 | Flag | Default | Meaning |
 |---|---|---|

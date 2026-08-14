@@ -1,11 +1,14 @@
+import os
+import sys
 from argparse import ArgumentParser
-from engine import game
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from engine.game import Game
 from engine.levels import get_level
-from typing import List
 
 
-def main(board: List[List[str]] = None):
+def main(board: list[list[str]] = None):
     parser = ArgumentParser()
     parser.add_argument('--animate', action='store_true', help='Enable terminal animation for crushes')
     parser.add_argument('--slomo', action='store_true',

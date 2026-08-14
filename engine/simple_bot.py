@@ -1,5 +1,11 @@
+import os
+import sys
 from argparse import ArgumentParser
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from engine.game import Game
+from engine.levels import get_level
 
 
 def most_pop(game, moves):

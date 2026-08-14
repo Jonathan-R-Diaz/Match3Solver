@@ -1,4 +1,5 @@
-"""Hand-rolled REINFORCE-with-baseline in PyTorch. Run from the repo root:
+"""Hand-rolled REINFORCE-with-baseline in PyTorch. Run from the repo root or
+from rl/:
 
     python train.py --level 1 --updates 300
 
@@ -14,7 +15,11 @@ every run auto-resumes from there, so repeated runs keep learning; pass
 --fresh to start a new net (watch a checkpoint with scripts/watch.py).
 """
 import os
+import sys
 from argparse import ArgumentParser
+
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, REPO_ROOT)
 
 import numpy as np
 import torch
@@ -92,7 +97,7 @@ def main():
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--eval-episodes', type=int, default=50)
     parser.add_argument('--log-every', type=int, default=10)
-    parser.add_argument('--out', default='models')
+    parser.add_argument('--out', default=os.path.join(REPO_ROOT, 'models'))
     parser.add_argument('--fresh', action='store_true',
                         help="start a new net instead of auto-resuming this "
                              "level's existing checkpoint")

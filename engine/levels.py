@@ -8,9 +8,9 @@ from typing import List
 
 LEVELS = {
     1: [
-        ".........",
-        ".........",
-        ".........",
+        "gyrrgybrb",
+        "rbybbrgyg",
+        "bggrrgyry",
         "BBBBBBBBB",
         "BBBBBBBBB",
         "BBBBBBBBB",
