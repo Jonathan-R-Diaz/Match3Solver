@@ -97,7 +97,6 @@ def test_reset_same_seed_same_deal():
 
 
 @pytest.mark.env
-@pytest.mark.skip
 def test_reset_advances_the_deal():
     env = CandyCrushEnv(level=1, seed=0)
     obs1, _ = env.reset()
