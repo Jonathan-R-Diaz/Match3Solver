@@ -3,8 +3,6 @@ from typing import List
 from collections import defaultdict
 
 
-OBSTACLES = { "B" }
-
 class Game:
     def __init__(self, rows=8, cols=8, max_moves=30, seed=0, board_state: List[List[str]] = None, debug=False, fill_empty=False, freeplay=True, verbose=True):
         self.num_candies = None

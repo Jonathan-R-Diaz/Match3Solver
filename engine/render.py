@@ -5,21 +5,16 @@ ASCII representation. Uses ANSI colors when available.
 """
 from typing import List, Optional
 
-_COLOR_MAP = {
-    'r': '[31m',   # red
-    'g': '[32m',   # green
-    'y': '[33m',   # yellow
-    'b': '[34m',   # blue
-    'B': '[37m',   # box (white/grey)
-    '#': '[90m',   # wall (dark grey)
-}
+from engine.items import parse
+
 _RESET = '[0m'
 
 
 def _colorize(ch: str, use_color: bool) -> str:
     if not use_color or ch == ' ':
         return ch
-    return _COLOR_MAP.get(ch, '') + ch + _RESET
+    color = parse(ch).color
+    return (color or '') + ch + _RESET
 
 
 def render_board(board: List[List[str]], score: Optional[int] = None, use_color: bool = True, moves_left = None, obstacles = None) -> None:

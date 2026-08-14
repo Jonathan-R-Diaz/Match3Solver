@@ -14,14 +14,10 @@ import random
 from collections import defaultdict
 from typing import List
 
-CANDIES  = ["r", "b", "g", "y"]
-POWERUPS = frozenset({"5", "V", "H", "T", "S"})
-ROCKETS  = frozenset({"V", "H"})
-# 'B' = box (one hit), 'C' = crate (two hits: cracks into a box first)
-OBSTACLES = frozenset({"B", "C"})
-OBSTACLE_HP = {"B": 1, "C": 2}
-# cells that can never be part of a line match (powerups are activated, not matched)
-UNMATCHABLE = frozenset({" ", "#"}) | OBSTACLES | POWERUPS
+from engine.items import (
+    Item, parse, EMPTY, ROCKET_V, ROCKET_H,
+    CANDIES, POWERUPS, ROCKETS, OBSTACLES, OBSTACLE_HP, UNMATCHABLE,
+)
 
 class Board:
     
@@ -36,7 +32,7 @@ class Board:
         self.record_frames = False
         self.frames = []
         if board_state:
-            self.grid = board_state
+            self.grid = [[parse(ch) for ch in row] for row in board_state]
             self.rows = len(self.grid)
             self.cols = len(self.grid[0])
             if fill_empty:
@@ -147,6 +143,23 @@ class Board:
 
         return violations
 
+    # powerup + powerup combo dispatch, keyed by the two items' combo_group
+    # (see engine/items.py) rather than their literal symbols — adding a new
+    # powerup to an existing combo_group (e.g. a second rocket variant)
+    # requires no change here.
+    _COMBO_DISPATCH = {
+        frozenset({"tnt"}): "_combo_tnt_tnt",
+        frozenset({"rocket"}): "_combo_rocket_rocket",
+        frozenset({"spinner"}): "_combo_spinner_spinner",
+        frozenset({"rocket", "tnt"}): "_combo_rocket_tnt",
+        frozenset({"eb"}): "_combo_eb_eb",
+        frozenset({"eb", "rocket"}): "_combo_eb_rocket",
+        frozenset({"eb", "tnt"}): "_combo_eb_tnt",
+        frozenset({"eb", "spinner"}): "_combo_eb_spinner",
+        frozenset({"spinner", "tnt"}): "_combo_spinner_tnt",
+        frozenset({"spinner", "rocket"}): "_combo_spinner_rocket",
+    }
+
     def activate_powerup(self, r1: int, c1: int, r2: int, c2: int, protected=None):
         self._snap(f"activating {self.grid[r1][c1]} @ ({r1},{c1})")
         if protected is None:
@@ -154,27 +167,11 @@ class Board:
         crushed = 0
 
         if not (r1 == r2 and c1 == c2):
-            a, b = self.grid[r1][c1], self.grid[r2][c2]
-            if a == "T" and b == "T":
-                return self._combo_tnt_tnt(r1, c1, r2, c2)
-            if a in ROCKETS and b in ROCKETS:
-                return self._combo_rocket_rocket(r1, c1, r2, c2)
-            if (a in ROCKETS and b == "T") or (b in ROCKETS and a == "T"):
-                return self._combo_rocket_tnt(r1, c1, r2, c2)
-            if a == "5" and b == "5":
-                return self._combo_eb_eb(r1, c1, r2, c2)
-            if (a == "5" and b in ROCKETS) or (b == "5" and a in ROCKETS):
-                return self._combo_eb_rocket(r1, c1, r2, c2)
-            if (a == "5" and b == "T") or (b == "5" and a == "T"):
-                return self._combo_eb_tnt(r1, c1, r2, c2)
-            if (a == "5" and b == "S") or (b == "5" and a == "S"):
-                return self._combo_eb_spinner(r1, c1, r2, c2)
-            if (a == "S" and b == "T") or (b == "S" and a == "T"):
-                return self._combo_spinner_tnt(r1, c1, r2, c2)
-            if (a == "S" and b in ROCKETS) or (b == "S" and a in ROCKETS):
-                return self._combo_spinner_rocket(r1, c1, r2, c2)
-            if a == "S" and b == "S":
-                return self._combo_spinner_spinner(r1, c1, r2, c2)
+            a, b = parse(self.grid[r1][c1]), parse(self.grid[r2][c2])
+            if a.kind == "powerup" and b.kind == "powerup":
+                handler = self._COMBO_DISPATCH.get(frozenset({a.combo_group, b.combo_group}))
+                if handler:
+                    return getattr(self, handler)(r1, c1, r2, c2)
 
         if self.grid[r2][c2] in ("V", "H", "T", "S"):
             r1, c1 = r2, c2
@@ -295,7 +292,7 @@ class Board:
             key=lambda rc: sum(
                 1 for dr in range(-2, 3) for dc in range(-2, 3)
                 if self.in_bounds(rc[0]+dr, rc[1]+dc)
-                and self.grid[rc[0]+dr][rc[1]+dc] == 'B'
+                and self.grid[rc[0]+dr][rc[1]+dc] in OBSTACLES
             )
         )
         return self.clear_area(best_r, best_c)
@@ -307,10 +304,10 @@ class Board:
         self.grid[r2][c2] = " "
         if rkt == 'H':
             best_r = max(range(self.rows),
-                         key=lambda r: sum(1 for c in range(self.cols) if self.grid[r][c] == 'B'))
+                         key=lambda r: sum(1 for c in range(self.cols) if self.grid[r][c] in OBSTACLES))
             return self.clear_row(best_r)
         best_c = max(range(self.cols),
-                     key=lambda c: sum(1 for r in range(self.rows) if self.grid[r][c] == 'B'))
+                     key=lambda c: sum(1 for r in range(self.rows) if self.grid[r][c] in OBSTACLES))
         return self.clear_col(best_c)
 
     def _combo_spinner_spinner(self, r1, c1, r2, c2):
@@ -320,11 +317,10 @@ class Board:
         crushed = self.fire_spinner(r1, c1)
         crushed += self.fire_spinner(r2, c2)
         obstacles = [(r, c) for r in range(self.rows) for c in range(self.cols)
-                     if self.grid[r][c] == 'B']
+                     if self.grid[r][c] in OBSTACLES]
         if obstacles:
             er, ec = self.rng.choice(obstacles)
-            self.grid[er][ec] = " "
-            crushed += 1
+            crushed += self.damage_obstacle(er, ec, hard=True)
         return crushed
 
     def fire_spinner(self, r: int, c: int, chain: bool = True, protected=None) -> int:
@@ -349,7 +345,7 @@ class Board:
                     crushed += self.activate_powerup(nr, nc, nr, nc)
                 # chain=False: skip powerups entirely — they stay on the board
             elif self.grid[nr][nc] in OBSTACLES:
-                crushed += self.damage_obstacle(nr, nc)
+                crushed += self.damage_obstacle(nr, nc, hard=True)
             elif self.grid[nr][nc] not in (' ', '#'):
                 self.grid[nr][nc] = ' '
                 crushed += 1
@@ -357,16 +353,32 @@ class Board:
                      if self.grid[rr][cc] in OBSTACLES]
         if obstacles:
             rr, cc = self.rng.choice(obstacles)
-            crushed += self.damage_obstacle(rr, cc)
+            crushed += self.damage_obstacle(rr, cc, hard=True)
         self._snap("spinner fired")
         return crushed
 
 
-    def damage_obstacle(self, r, c):
-        """Land one hit on an obstacle cell: a crate cracks into a box, a
-        box pops. Every damage path (match adjacency, blasts, spinners) goes
-        through here. Returns 1 — the hit that landed."""
-        self.grid[r][c] = "B" if self.grid[r][c] == "C" else " "
+    def damage_obstacle(self, r, c, hard=False):
+        """Land one hit on an obstacle cell: it cracks into item.cracks_into,
+        or pops to empty if it has none left. Every damage path (match
+        adjacency, blasts, spinners) goes through here.
+
+        hard=True marks a powerup-driven hit ("hard pop"); hard=False marks
+        ordinary match-adjacency splash ("soft pop"). An item.hard_only
+        obstacle only takes damage from a hard pop — a soft pop bounces off
+        (returns 0). No current obstacle is hard_only; this exists so a
+        future powerup-only item (e.g. a metal box) is a data addition, not
+        a rewrite of every call site here.
+
+        Returns 1 if the hit landed, 0 if it bounced off."""
+        # parse(), not a bare read: plenty of code (including this file's
+        # own combo methods, and tests) drops raw string literals straight
+        # into grid cells, so the stored object isn't always the canonical
+        # Item singleton with metadata attached.
+        item = parse(self.grid[r][c])
+        if item.hard_only and not hard:
+            return 0
+        self.grid[r][c] = Item(item.cracks_into) if item.cracks_into else EMPTY
         return 1
 
     def get_most_candy(self):
@@ -415,7 +427,7 @@ class Board:
                 if self.grid[nr][nc] in POWERUPS:
                     crushed += self.activate_powerup(nr, nc, nr, nc)
                 elif self.grid[nr][nc] in OBSTACLES:
-                    crushed += self.damage_obstacle(nr, nc)
+                    crushed += self.damage_obstacle(nr, nc, hard=True)
                 elif self.grid[nr][nc] not in (' ', '#'):
                     self.grid[nr][nc] = ' '
                     crushed += 1
@@ -432,7 +444,9 @@ class Board:
                 continue
             if self.grid[i][c] in POWERUPS:
                 crushed += self.activate_powerup(i, c, i, c)
-            if self.grid[i][c] not in (' ', '#'):
+            elif self.grid[i][c] in OBSTACLES:
+                crushed += self.damage_obstacle(i, c, hard=True)
+            elif self.grid[i][c] not in (' ', '#'):
                 self.grid[i][c] = " "
                 crushed += 1
 
@@ -449,7 +463,9 @@ class Board:
                 continue
             if self.grid[r][j] in POWERUPS:
                 crushed += self.activate_powerup(r, j, r, j)
-            if self.grid[r][j] not in (' ', '#'):
+            elif self.grid[r][j] in OBSTACLES:
+                crushed += self.damage_obstacle(r, j, hard=True)
+            elif self.grid[r][j] not in (' ', '#'):
                 self.grid[r][j] = " "
                 crushed += 1
 
@@ -789,9 +805,9 @@ class Board:
     def random_rocket(self):
         heads = self.rng.choice([True, False])
         if self.debug or heads:
-            return "H"
+            return ROCKET_H
 
-        return "V"
+        return ROCKET_V
 
 
     def get_obstacles(self):
