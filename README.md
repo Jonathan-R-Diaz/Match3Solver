@@ -14,9 +14,9 @@ vision pipeline that lets the trained agent play a real mobile match-3 game.
 **[🍭 Powerups & combos](#-powerups--combos) · [🧩 What's here](#-whats-here) · [🚀 Quick start](#-quick-start) · [📈 Status](#-status)**
 
 <p align="center">
-<img src="docs/img/comparison.png" alt="Left: the vision pipeline's grid detection overlaid on a live screenshot of the real game. Right: play.py running in a terminal, showing the colored ASCII board with box obstacles." width="640px">
+<img src="docs/img/comparison.png" alt="Left: the vision pipeline's grid detection overlaid on a live screenshot of the real game. Right: engine/play.py running in a terminal, showing the colored ASCII board with box obstacles." width="640px">
 <br>
-<sub>The vision pipeline's grid detection on a real run (left) — <code>play.py</code> in the terminal (right)</sub>
+<sub>The vision pipeline's grid detection on a real run (left) — <code>engine/play.py</code> in the terminal (right)</sub>
 </p>
 
 The engine implements a generic match-3 ruleset. The vision pipeline reads
@@ -42,12 +42,9 @@ Any two powerups can be swapped together for a combo blast — see `_combo_*` in
 🎮 **[`engine/`](engine/)** — the game engine. A pure-Python board (`board.py`) with
 match detection, cascades, four powerups and their pairwise combos, plus box/crate obstacles
 that must be cleared to win. `game.py` wraps it into a playable session with
-a move budget; `levels.py` holds hand-built layouts. No external game
-dependencies — this is a from-scratch reimplementation.
-
-🤖 **[`simple_bot.py`](simple_bot.py)** — a greedy baseline (`most_pop`) that picks whichever
-legal move crushes the most candies, no learning involved. Useful as a
-sanity floor for the trained agent.
+a move budget; `levels.py` holds hand-built layouts; `play.py` lets you play
+it yourself in the terminal. No external game dependencies — this is a
+from-scratch reimplementation.
 
 🏋️ **[`rl/`](rl/)** — a [Gymnasium](https://gymnasium.farama.org/) environment
 (`env.py`) around the engine: one-hot board observations, an action mask so
@@ -81,10 +78,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 # play the engine yourself in the terminal
-python play.py
-
-# watch the greedy baseline play
-python simple_bot.py
+python engine/play.py
 
 # train an agent (Ctrl-C to stop; it checkpoints as it goes)
 python rl/train.py --moves 15
