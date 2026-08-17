@@ -14,9 +14,9 @@ vision pipeline that lets the trained agent play a real mobile match-3 game.
 **[🍭 Powerups & combos](#-powerups--combos) · [🧩 What's here](#-whats-here) · [🚀 Quick start](#-quick-start) · [📈 Status](#-status)**
 
 <p align="center">
-<img src="docs/img/comparison.png" alt="Left: the vision pipeline's grid detection overlaid on a live screenshot of the real game. Right: engine/play.py running in a terminal, showing the colored ASCII board with box obstacles." width="640px">
+<img src="docs/img/level3_final.gif" alt="The vision pipeline playing live on a real phone screen, clearing level 3 to completion." width="640px">
 <br>
-<sub>The vision pipeline's grid detection on a real run (left) — <code>engine/play.py</code> in the terminal (right)</sub>
+<sub>Live run: the vision pipeline reading the real board and clearing level 3</sub>
 </p>
 
 The engine implements a generic match-3 ruleset. The vision pipeline reads
